@@ -208,8 +208,7 @@ def create_app(config_name):
         search_term = str(request.args.get('q', ''))
         limit = int(request.args.get('limit', 10))
         # TODO: Check if authenticated before search
-        # TODO: Change filter to like
-        shoppinglists = ShoppingList.query.filter_by(name=search_term).limit(limit)
+        shoppinglists = ShoppingList.query.filter(ShoppingList.name.like("%"+search_term+"%")).limit(limit)
         results = []
 
         for shoppinglist in shoppinglists:
