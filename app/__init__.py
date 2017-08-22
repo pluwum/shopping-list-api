@@ -206,8 +206,9 @@ def create_app(config_name):
     @app.route('/shoppinglists/search/', methods=['GET'])
     def shoppinglist_search():
         search_term = str(request.args.get('q', ''))
-        limit = int(request.args.get('limit', 1))
+        limit = int(request.args.get('limit', 10))
         # TODO: Check if authenticated before search
+        # TODO: Change filter to like
         shoppinglists = ShoppingList.query.filter_by(name=search_term).limit(limit)
         results = []
 
