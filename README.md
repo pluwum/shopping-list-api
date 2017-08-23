@@ -24,7 +24,7 @@ DELETE /shoppinglists/<id>/items/<item_id> | | JSON
 
 # Motivation
 
-This project is part of a submission for week two of Andela BootCamp UG CH3 2017. All the features available are development as specified by the assignment
+This project is part of a submission for week two of Andela BootCamp UG CH3 2017. All the features available are developed as specified by the assignment
 # Installation
 
 1. First: Install the required packages
