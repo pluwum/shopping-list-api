@@ -32,15 +32,15 @@ This project is part of a submission for week two of Andela BootCamp UG CH3 2017
 
 2. Secondly: Setup the DB using the manage.py script
 
-`python manage.py db init`
+    `python manage.py db init`
 
-`python manage.py db migrate`
+    `python manage.py db migrate`
 
-`python manage.py db upgrade`
+    `python manage.py db upgrade`
 
 3. Thirdly: Run the application
 
-`python run.py`
+    `python run.py`
 
 # Tests
 
