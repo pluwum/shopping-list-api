@@ -7,16 +7,6 @@ This project is a RESTful API using Flask with Endpoints that:
 # Usage
 The API can be accessed using the following end points
 
-First Header | Second Header
------------- | -------------
-Content from cell 1 | Content from cell 2
-Content in the first column | Content in the second column
-
-
-
-
-
-
 END POINT|PARAM|RESPONSE
 ----------|------|--------
 POST /auth/register|email, password | JSON
