@@ -16,10 +16,10 @@ POST /auth/reset-password  | email | JSON
 POST /shoppinglists/  | name | JSON
 GET /shoppinglists/  | | JSON
 GET /shoppinglists/<id>  | | JSON
-PUT /shoppinglists/<id>  | | JSON
+PUT /shoppinglists/<id>  | name | JSON
 DELETE /shoppinglists/<id>  | | JSON
-POST /shoppinglists/<id>/items/  | | JSON
-PUT /shoppinglists/<id>/items/<item_id>  | |JSON
+POST /shoppinglists/<id>/items/  | name | JSON
+PUT /shoppinglists/<id>/items/<item_id>  | name |JSON
 DELETE /shoppinglists/<id>/items/<item_id> | | JSON
 
 # Motivation
