@@ -5,10 +5,10 @@ This project is a RESTful API using Flask with Endpoints that:
 - c. Add, update, view or delete items in a shopping list
 
 # Usage
-The API can be accessed using the follwing end points
-END POINT | PARAM | RESPONSE
----------- | ------ | --------
-POST /auth/register  | email, password | JSON
+The API can be accessed using the following end points
+END POINT|PARAM|RESPONSE
+----------|------|--------
+POST /auth/register|email, password | JSON
 POST /auth/login  | email, password | JSON
 POST /auth/logout | | JSON
 POST /auth/reset-password  | email | JSON
