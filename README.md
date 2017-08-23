@@ -45,7 +45,8 @@ This project is part of a submission for week two of Andela BootCamp UG CH3 2017
 # Tests
 
 The tests are contained in the `/tests` folder. After installing the PyTest dependency, you can run them  all as below:
-`python -m pytest tests/`
+
+    `python -m pytest tests/`
 
 # Contributors
 
