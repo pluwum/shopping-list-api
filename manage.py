@@ -1,12 +1,9 @@
-# manage.py
-
-import os
-from flask_script import Manager # class for handling a set of commands
+"""This file provides database migration commands"""
+# import class for handling our commands
+from app import create_app, db, models
 from flask_migrate import Migrate, MigrateCommand
-from app import db, create_app
-from app import models
+from flask_script import Manager
 
-#app = create_app(config_name=os.getenv('APP_SETTINGS'))
 app = create_app('development')
 migrate = Migrate(app, db)
 manager = Manager(app)

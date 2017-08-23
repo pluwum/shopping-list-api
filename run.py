@@ -1,8 +1,6 @@
-import os
-
+"""This file starts the Flask web service on port 5000"""
 from app import create_app
 
-# config_name = os.getenv('APP_SETTINGS')
 config_name = "development"
 app = create_app(config_name)
 

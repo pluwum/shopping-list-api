@@ -1,17 +1,22 @@
-import unittest
-import os
+"""This file carries test cases for the shopping list API's Authentication
+ features
+"""
 import json
+from unittest import TestCase
 from app import create_app, db
 
-class AuthTestCase(unittest.TestCase):
-    """Test case for the authentication blueprint."""
+
+class AuthTestCase(TestCase):
+    """Test cases for the API authentication"""
 
     def setUp(self):
-        """Set up test variables."""
+        """Set up some helpful variables."""
         self.app = create_app(config_name="testing")
-        # initialize the test client
+
+        # Initialize the test client
         self.client = self.app.test_client
-        # This is the user test json data with a predefined email and password
+
+        # Initialise a test user's data for later
         self.user_data = {
             'email': 'test@example.com',
             'password': 'test_password'
@@ -23,54 +28,70 @@ class AuthTestCase(unittest.TestCase):
             db.drop_all()
             db.create_all()
 
-    def test_registration(self):
-        """Test user registration works correcty."""
-        res = self.client().post('/auth/register', data=self.user_data)
-        # get the results returned in json format
-        result = json.loads(res.data.decode())
-        # assert that the request contains a success message and a 201 status code
-        self.assertEqual(result['message'], "You registered successfully. Please log in.")
-        self.assertEqual(res.status_code, 201)
+    def test_user_registration(self):
+        """Test that user can register successfully"""
+        register_user_response = self.client().post('/auth/register',
+                                                    data=self.user_data)
 
-    def test_already_registered_user(self):
+        # Convert respponse to JSON format
+        result = json.loads(register_user_response.data.decode())
+
+        # Assert that the request contains a success message
+        self.assertEqual(result['message'],
+                         "You registered successfully. Please log in.")
+        # Check that server created resource successfully
+        self.assertEqual(register_user_response.status_code, 201)
+
+    def test_that_user_already_registered(self):
         """Test that a user cannot be registered twice."""
-        res = self.client().post('/auth/register', data=self.user_data)
-        self.assertEqual(res.status_code, 201)
-        second_res = self.client().post('/auth/register', data=self.user_data)
-        self.assertEqual(second_res.status_code, 202)
-        # get the results returned in json format
-        result = json.loads(second_res.data.decode())
+        # Lets create a new user and check that they are created
+        register_firsttime_user_response = self.client().post(
+            '/auth/register', data=self.user_data)
+        self.assertEqual(register_firsttime_user_response.status_code, 201)
+
+        # Lets try creating the user a second time
+        register_secondtime_user_response = self.client().post(
+            '/auth/register', data=self.user_data)
+        self.assertEqual(register_secondtime_user_response.status_code, 202)
+
+        # Get the results returned in JSON format
+        result = json.loads(register_secondtime_user_response.data.decode())
         self.assertEqual(
             result['message'], "User already exists. Please login.")
 
-    def test_user_login(self):
+    def test_user_can_login(self):
         """Test registered user can login."""
-        res = self.client().post('/auth/register', data=self.user_data)
-        self.assertEqual(res.status_code, 201)
-        login_res = self.client().post('/auth/login', data=self.user_data)
+        register_user_response = self.client().post(
+            '/auth/register', data=self.user_data)
+        self.assertEqual(register_user_response.status_code, 201)
+        login_response = self.client().post('/auth/login', data=self.user_data)
 
         # get the results in json format
-        result = json.loads(login_res.data.decode())
+        result = json.loads(login_response.data.decode())
+
         # Test that the response contains success message
         self.assertEqual(result['message'], "You logged in successfully.")
-        # Assert that the status code is equal to 200
-        self.assertEqual(login_res.status_code, 200)
+
+        # Assert that the status code is equal to 200-OK
+        self.assertEqual(login_response.status_code, 200)
+
+        # Check that an access token is generated for the session
         self.assertTrue(result['access_token'])
 
     def test_non_registered_user_login(self):
-        """Test non registered users cannot login."""
-        # define a dictionary to represent an unregistered user
+        """Test non registered users cannot login"""
+        # Define test data for an unregistered user
         not_a_user = {
             'email': 'not_a_user@example.com',
             'password': 'nope'
         }
-        # send a POST request to /auth/login with the data above
-        res = self.client().post('/auth/login', data=not_a_user)
-        # get the result in json
-        result = json.loads(res.data.decode())
+        # Now lets try loggin in as above user
+        login_response = self.client().post('/auth/login', data=not_a_user)
+        # Get the result as JSON format
+        result = json.loads(login_response.data.decode())
 
         # assert that this response must contain an error message
         # and an error status code 401(Unauthorized)
-        self.assertEqual(res.status_code, 401)
+        self.assertEqual(login_response.status_code, 401)
         self.assertEqual(
             result['message'], "Invalid email or password, Please try again")
