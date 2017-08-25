@@ -27,10 +27,12 @@ DELETE /shoppinglists/<id>/items/<item_id> | | JSON
 This project is part of a submission for week two of Andela BootCamp UG CH3 2017. All the features available are developed as specified by the assignment
 # Installation
 
-1. First: Install the required packages
+1. Setup a virtual environment
+
+2. Install the required packages
     pip -r install requirements.txt
 
-2. Secondly: Setup the DB using the manage.py script
+3. Setup the DB using the manage.py script
 
     `python manage.py db init`
 
@@ -38,7 +40,7 @@ This project is part of a submission for week two of Andela BootCamp UG CH3 2017
 
     `python manage.py db upgrade`
 
-3. Thirdly: Run the application
+4. Run the application
 
     `python run.py`
 
