@@ -29,13 +29,18 @@ DELETE /shoppinglists/<id>/items/<item_id> | | JSON
 
 This project is part of a submission for week two of Andela BootCamp UG CH3 2017. All the features available are developed as specified by the assignment
 # Installation
+1. Install postgresql. Click [here](https://labkey.org/Documentation/wiki-page.view?name=installPostgreSQLWindows) for installtion instructions
 
-1. Setup a virtual environment
+2. Create the databases
+  - `psql -c 'create database test_db;' -U postgres`
+  - `psql -c 'create database shoppinglist;' -U postgres`
 
-2. Install the required packages
+3. Setup a virtual environment
+
+4. Install the required packages
     pip -r install requirements.txt
 
-3. Setup the DB using the manage.py script
+5. Setup the DB using the manage.py script
 
     `python manage.py db init`
 
@@ -43,7 +48,7 @@ This project is part of a submission for week two of Andela BootCamp UG CH3 2017
 
     `python manage.py db upgrade`
 
-4. Run the application
+6. Run the application
 
     `python run.py`
 
