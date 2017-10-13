@@ -29,7 +29,7 @@ DELETE /shoppinglists/<id>/items/<item_id> | | JSON
 
 This project is part of a submission for week two of Andela BootCamp UG CH3 2017. All the features available are developed as specified by the assignment
 # Installation
-1. Install postgresql. Click [here](https://labkey.org/Documentation/wiki-page.view?name=installPostgreSQLWindows) for installtion instructions
+1. Install postgresql. Click [here](https://labkey.org/Documentation/wiki-page.view?name=installPostgreSQLWindows) for installation instructions
 
 2. Create the databases
   - `psql -c 'create database test_db;' -U postgres`
