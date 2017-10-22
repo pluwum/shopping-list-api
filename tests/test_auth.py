@@ -65,6 +65,7 @@ class AuthTestCase(TestCase):
         register_user_response = self.client().post(
             '/auth/register', data=self.user_data)
         self.assertEqual(register_user_response.status_code, 201)
+
         login_response = self.client().post('/auth/login', data=self.user_data)
 
         # get the results in json format
@@ -93,3 +94,35 @@ class AuthTestCase(TestCase):
         self.assertEqual(login_response.status_code, 401)
         self.assertEqual(result['message'],
                          "Invalid email or password, Please try again")
+
+    def test_user_can_logout(self):
+        """Test logged in user can log out"""
+        register_user_response = self.client().post(
+            '/auth/register', data=self.user_data)
+        self.assertEqual(register_user_response.status_code, 201)
+
+        # user login
+        login_response = self.client().post('/auth/login', data=self.user_data)
+
+        # get the results in json format
+        result = json.loads(login_response.data.decode())
+
+        # Test that the response contains success message
+        self.assertEqual(result['message'], "You logged in successfully.")
+
+        # Assert that the status code is equal to 200-OK
+        self.assertEqual(login_response.status_code, 200)
+
+        # Check that an access token is generated for the session
+        self.assertTrue(result['access_token'])
+
+        # valid token logout
+        logout_response = self.client().post(
+            '/auth/logout',
+            headers=dict(Authorization='Bearer ' + result['access_token']))
+
+        result = json.loads(logout_response.data.decode())
+
+        self.assertTrue(result['message'] == 'Successfully logged out.')
+
+        self.assertEqual(logout_response.status_code, 200)
