@@ -2,8 +2,9 @@
  features
 """
 import json
+import time
 from unittest import TestCase
-
+from app.models import BlacklistToken
 from app import create_app, db
 
 
@@ -124,5 +125,35 @@ class AuthTestCase(TestCase):
         result = json.loads(logout_response.data.decode())
 
         self.assertTrue(result['message'] == 'Successfully logged out.')
-
         self.assertEqual(logout_response.status_code, 200)
+
+    def test_valid_blacklisted_token_logout(self):
+        """ Test for logout after a valid token gets blacklisted """
+
+        with self.app.app_context():
+            register_user_response = self.client().post(
+                '/auth/register', data=self.user_data)
+
+            self.assertEqual(register_user_response.status_code, 201)
+
+            # user login
+            login_response = self.client().post(
+                '/auth/login', data=self.user_data)
+
+            # get the results in json format
+            result = json.loads(login_response.data.decode())
+
+            # blacklist a valid token
+            blacklist_token = BlacklistToken(token=result['access_token'])
+            blacklist_token.save()
+
+            # blacklisted valid token logout
+            logout_response = self.client().post(
+                '/auth/logout',
+                headers=dict(Authorization='Bearer ' + result['access_token']))
+
+            result = json.loads(logout_response.data.decode())
+
+            self.assertTrue(
+                result['message'] == 'Token blacklisted. Please log in again.')
+            self.assertEqual(logout_response.status_code, 401)
