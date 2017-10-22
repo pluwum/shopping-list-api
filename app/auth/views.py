@@ -1,7 +1,7 @@
 """This file contains the API logic for handling Auhtentication based requests
 for registration and login
 """
-from app.models import User
+from app.models import BlacklistToken, User
 from flask import Blueprint, jsonify, make_response, request
 from flask.views import MethodView
 
@@ -59,11 +59,31 @@ class LogoutView(MethodView):
     """This handles logout action"""
 
     def post(self):
-        """This handles POST request for logout """
-        # TODO: implement this
-        response = {'message': 'You have logged out successfully.'}
-
-        return make_response(jsonify(response)), 200
+        # get access token
+        auth_header = request.headers.get('Authorization')
+        if auth_header:
+            access_token = auth_header.split(" ")[1]
+        else:
+            access_token = ''
+        if access_token:
+            resp = User.decode_token(access_token)
+            if not isinstance(resp, str):
+                # mark the token as blacklisted
+                blacklist_token = BlacklistToken(token=access_token)
+                try:
+                    # insert the token into the blacklist table
+                    blacklist_token.save()
+                    response = {"message": 'Successfully logged out.'}
+                    return make_response(jsonify(response)), 200
+                except Exception as e:
+                    response = {"message": str(e)}
+                    return make_response(jsonify(response)), 200
+            else:
+                response = {"message": resp}
+                return make_response(jsonify(response)), 401
+        else:
+            response = {"message": 'Provide a valid auth token.'}
+            return make_response(jsonify(response)), 403
 
 
 class LoginView(MethodView):
