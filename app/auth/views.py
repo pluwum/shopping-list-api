@@ -1,10 +1,9 @@
 """This file contains the API logic for handling Auhtentication based requests
 for registration and login
 """
+from app.models import User
 from flask import Blueprint, jsonify, make_response, request
 from flask.views import MethodView
-
-from app.models import User
 
 from . import auth_blueprint
 
@@ -35,18 +34,36 @@ class RegistrationView(MethodView):
                 return make_response(jsonify(response)), 201
             except Exception as e:
                 # Return to requestor a message with the error that occured
-                response = {
-                    'message': str(e)
-                }
+                response = {'message': str(e)}
                 return make_response(jsonify(response)), 401
         else:
             # This handles a case where user already exists
             # Return am message telling them it already exist
-            response = {
-                'message': 'User already exists. Please login.'
-            }
+            response = {'message': 'User already exists. Please login.'}
 
             return make_response(jsonify(response)), 202
+
+
+class PasswordResetView(MethodView):
+    """This handles password reset action"""
+
+    def post(self):
+        """This handles POST requests for password reset"""
+        # TODO: implement this
+        response = {'message': 'You reset password successfully.'}
+
+        return make_response(jsonify(response)), 200
+
+
+class LogoutView(MethodView):
+    """This handles logout action"""
+
+    def post(self):
+        """This handles POST request for logout """
+        # TODO: implement this
+        response = {'message': 'You have logged out successfully.'}
+
+        return make_response(jsonify(response)), 200
 
 
 class LoginView(MethodView):
@@ -78,29 +95,33 @@ class LoginView(MethodView):
 
         except Exception as e:
             # Prepare and send a response with the error that has occured
-            response = {
-                'message': str(e)
-            }
+            response = {'message': str(e)}
             # Return the using the HTTP Error Code 500 (Internal Server Error)
             return make_response(jsonify(response)), 500
 
 
-# Lets make our registration and login views callable
+# Lets make our rauth views callable
 registration_view = RegistrationView.as_view('registration_view')
 login_view = LoginView.as_view('login_view')
-
+logout_view = LogoutView.as_view('logout_view')
+password_reset_view = PasswordResetView.as_view('password_reset_view')
 
 # Add the rule for the registration end point  /auth/register
 # Then we can add the rule to the blueprint
 auth_blueprint.add_url_rule(
-    '/auth/register',
-    view_func=registration_view,
-    methods=['POST'])
+    '/auth/register', view_func=registration_view, methods=['POST'])
 
 # Define the rule for the login endpoint  /auth/login
 # And then we add the rule to the blueprint
 auth_blueprint.add_url_rule(
-    '/auth/login',
-    view_func=login_view,
-    methods=['POST']
-)
+    '/auth/login', view_func=login_view, methods=['POST'])
+
+# Define the rule for the logout endpoint  /auth/logout
+# And then we add the rule to the blueprint
+auth_blueprint.add_url_rule(
+    '/auth/logout', view_func=logout_view, methods=['POST'])
+
+# Define the rule for the logout endpoint  /auth/reset-password
+# And then we add the rule to the blueprint
+auth_blueprint.add_url_rule(
+    '/auth/reset-password', view_func=password_reset_view, methods=['POST'])
