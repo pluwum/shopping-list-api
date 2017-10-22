@@ -50,20 +50,23 @@ def create_app(config_name):
                         shoppinglist = ShoppingList(name=name, user_id=user_id)
                         shoppinglist.save()
                         response = jsonify({
-                            'id': shoppinglist.id,
-                            'name': shoppinglist.name,
-                            'date_created': shoppinglist.date_created,
-                            'date_modified': shoppinglist.date_modified,
-                            'user_id': user_id
+                            'id':
+                            shoppinglist.id,
+                            'name':
+                            shoppinglist.name,
+                            'date_created':
+                            shoppinglist.date_created,
+                            'date_modified':
+                            shoppinglist.date_modified,
+                            'user_id':
+                            user_id
                         })
 
                         return make_response(response), 201
                     else:
                         message = "Name field not passed with request."\
                             "Please try again"
-                        response = {
-                            'message': message
-                        }
+                        response = {'message': message}
                         return make_response(jsonify(response)), 200
                 else:
                     # Executes if request is GET
@@ -87,9 +90,7 @@ def create_app(config_name):
                 # Executes when user is not authorized
                 # Return the message returned by the jwt decode function
                 message = user_id
-                response = {
-                    'message': message
-                }
+                response = {'message': message}
                 return make_response(jsonify(response)), 401
 
     @app.route('/shoppinglists/<int:id>', methods=['GET', 'PUT', 'DELETE'])
@@ -141,19 +142,22 @@ def create_app(config_name):
                     # Handdle GET View list/Show list request here
                     # We prepare a response with model info & return it
                     response = jsonify({
-                        'id': shoppinglist.id,
-                        'name': shoppinglist.name,
-                        'date_created': shoppinglist.date_created,
-                        'date_modified': shoppinglist.date_modified,
-                        'user_id': shoppinglist.user_id
+                        'id':
+                        shoppinglist.id,
+                        'name':
+                        shoppinglist.name,
+                        'date_created':
+                        shoppinglist.date_created,
+                        'date_modified':
+                        shoppinglist.date_modified,
+                        'user_id':
+                        shoppinglist.user_id
                     })
                     return make_response(response), 200
             else:
                 # user is not legit, so the payload is an error message
                 message = user_id
-                response = {
-                    'message': message
-                }
+                response = {'message': message}
                 return make_response(jsonify(response)), 401
 
     @app.route('/shoppinglists/<int:id>/items', methods=['POST'])
@@ -178,24 +182,29 @@ def create_app(config_name):
 
                     # Prepare a response and return it to the requestor
                     response = jsonify({
-                        'id': shoppinglist_item.id,
-                        'name': shoppinglist_item.name,
-                        'date_created': shoppinglist_item.date_created,
-                        'date_modified': shoppinglist_item.date_modified,
-                        'user_id': user_id,
-                        'shoppinglist_id': id
+                        'id':
+                        shoppinglist_item.id,
+                        'name':
+                        shoppinglist_item.name,
+                        'date_created':
+                        shoppinglist_item.date_created,
+                        'date_modified':
+                        shoppinglist_item.date_modified,
+                        'user_id':
+                        user_id,
+                        'shoppinglist_id':
+                        id
                     })
                     return make_response(response), 201
             else:
                 # User is not authenticated so return message from JWT decode()
                 message = user_id
-                response = {
-                    'message': message
-                }
+                response = {'message': message}
                 return make_response(jsonify(response)), 401
 
-    @app.route('/shoppinglists/<int:id>/items/<int:item_id>',
-               methods=['PUT', 'DELETE'])
+    @app.route(
+        '/shoppinglists/<int:id>/items/<int:item_id>',
+        methods=['PUT', 'DELETE'])
     def shoppinglist_item_manipulation(id, item_id):
         """ This handles EDIT and DELETE shopping list item actions"""
 
@@ -245,9 +254,7 @@ def create_app(config_name):
             else:
                 # When user is not authenticated. Prepare response and return
                 message = user_id
-                response = {
-                    'message': message
-                }
+                response = {'message': message}
                 return make_response(jsonify(response)), 401
 
     @app.route('/shoppinglists/search/', methods=['GET'])
