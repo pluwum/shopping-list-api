@@ -18,7 +18,8 @@ class User(db.Model):
     email = db.Column(db.String(256), nullable=False, unique=True)
     password = db.Column(db.String(256), nullable=False)
     shoppinglists = db.relationship(
-        'ShoppingList', order_by='ShoppingList.id',
+        'ShoppingList',
+        order_by='ShoppingList.id',
         cascade="all, delete-orphan")
 
     def __init__(self, email, password):
@@ -48,11 +49,7 @@ class User(db.Model):
                 'sub': user_id
             }
             # Create the byte string token using the payload and the SECRET key
-            encoded_jwt = jwt.encode(
-                payload,
-                'mys3cr3t',
-                algorithm='HS256'
-            )
+            encoded_jwt = jwt.encode(payload, 'mys3cr3t', algorithm='HS256')
             return encoded_jwt
 
         except Exception as e:
@@ -65,6 +62,12 @@ class User(db.Model):
         try:
             # Lets try to decode the token using our SECRET variable
             payload = jwt.decode(token, 'mys3cr3t')
+
+            # Check if token is blacklisted
+            is_blacklisted_token = BlacklistToken.check_blacklist(token)
+            if is_blacklisted_token:
+                return 'Token blacklisted. Please log in again.'
+
             return payload['sub']
         except jwt.ExpiredSignatureError:
             # When the token is expired, return an error string
@@ -85,7 +88,8 @@ class ShoppingList(db.Model):
     # Define auto populated columns for create and update time
     date_created = db.Column(db.DateTime, default=db.func.current_timestamp())
     date_modified = db.Column(
-        db.DateTime, default=db.func.current_timestamp(),
+        db.DateTime,
+        default=db.func.current_timestamp(),
         onupdate=db.func.current_timestamp())
 
     # Define user id column for associated user
@@ -93,7 +97,8 @@ class ShoppingList(db.Model):
 
     # Define a one-to-many relationship with items that belong
     shoppinglist_items = db.relationship(
-        'ShoppingListItem', order_by='ShoppingListItem.id',
+        'ShoppingListItem',
+        order_by='ShoppingListItem.id',
         cascade="all, delete-orphan")
 
     def __init__(self, name, user_id):
@@ -133,7 +138,8 @@ class ShoppingListItem(db.Model):
     shoppinglist_id = db.Column(db.Integer, db.ForeignKey(ShoppingList.id))
     date_created = db.Column(db.DateTime, default=db.func.current_timestamp())
     date_modified = db.Column(
-        db.DateTime, default=db.func.current_timestamp(),
+        db.DateTime,
+        default=db.func.current_timestamp(),
         onupdate=db.func.current_timestamp())
 
     def __init__(self, name, shoppinglist_id):
@@ -159,3 +165,35 @@ class ShoppingListItem(db.Model):
     def __repr__(self):
         """ Prints out a representation of the item object"""
         return "<Shoppinglist Item: {}>".format(self.name)
+
+
+class BlacklistToken(db.Model):
+    """
+    This represents the table that stores tokens
+    """
+    __tablename__ = 'blacklist_tokens'
+
+    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    token = db.Column(db.String(500), unique=True, nullable=False)
+    blacklisted_on = db.Column(db.DateTime, nullable=False)
+
+    def __init__(self, token):
+        self.token = token
+        self.blacklisted_on = datetime.now()
+
+    def __repr__(self):
+        return '<id: token: {}'.format(self.token)
+
+    def save(self):
+        """Save or update items in the database"""
+        db.session.add(self)
+        db.session.commit()
+
+    @staticmethod
+    def check_blacklist(auth_token):
+        # check whether auth token has been blacklisted
+        result = BlacklistToken.query.filter_by(token=str(auth_token)).first()
+        if result:
+            return True
+        else:
+            return False
