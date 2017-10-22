@@ -3,6 +3,7 @@
 """
 import json
 from unittest import TestCase
+
 from app import create_app, db
 
 
@@ -30,8 +31,8 @@ class AuthTestCase(TestCase):
 
     def test_user_registration(self):
         """Test that user can register successfully"""
-        register_user_response = self.client().post('/auth/register',
-                                                    data=self.user_data)
+        register_user_response = self.client().post(
+            '/auth/register', data=self.user_data)
 
         # Convert respponse to JSON format
         result = json.loads(register_user_response.data.decode())
@@ -56,8 +57,8 @@ class AuthTestCase(TestCase):
 
         # Get the results returned in JSON format
         result = json.loads(register_secondtime_user_response.data.decode())
-        self.assertEqual(
-            result['message'], "User already exists. Please login.")
+        self.assertEqual(result['message'],
+                         "User already exists. Please login.")
 
     def test_user_can_login(self):
         """Test registered user can login."""
@@ -81,10 +82,7 @@ class AuthTestCase(TestCase):
     def test_non_registered_user_login(self):
         """Test non registered users cannot login"""
         # Define test data for an unregistered user
-        not_a_user = {
-            'email': 'not_a_user@example.com',
-            'password': 'nope'
-        }
+        not_a_user = {'email': 'not_a_user@example.com', 'password': 'nope'}
         # Now lets try loggin in as above user
         login_response = self.client().post('/auth/login', data=not_a_user)
         # Get the result as JSON format
@@ -93,5 +91,5 @@ class AuthTestCase(TestCase):
         # assert that this response must contain an error message
         # and an error status code 401(Unauthorized)
         self.assertEqual(login_response.status_code, 401)
-        self.assertEqual(
-            result['message'], "Invalid email or password, Please try again")
+        self.assertEqual(result['message'],
+                         "Invalid email or password, Please try again")
