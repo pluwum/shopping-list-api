@@ -1,9 +1,13 @@
 """This file contains the API logic for handling Auhtentication based requests
 for registration and login
 """
+import uuid
+
+from app import mail
 from app.models import BlacklistToken, User
 from flask import Blueprint, jsonify, make_response, request
 from flask.views import MethodView
+from flask_mail import Message
 
 from . import auth_blueprint
 
@@ -15,7 +19,11 @@ class RegistrationView(MethodView):
         """Handle POST requests for the registration endpoint"""
 
         # lets check if the user already exists
-        user = User.query.filter_by(email=request.data['email']).first()
+        try:
+            user = User.query.filter_by(email=request.data['email']).first()
+        except Exception as e:
+            response = {'message': str(e)}
+            return make_response(jsonify(response)), 400
 
         if not user:
             # This user doesn't exist, so lets create them
@@ -35,7 +43,7 @@ class RegistrationView(MethodView):
             except Exception as e:
                 # Return to requestor a message with the error that occured
                 response = {'message': str(e)}
-                return make_response(jsonify(response)), 401
+                return make_response(jsonify(response)), 400
         else:
             # This handles a case where user already exists
             # Return am message telling them it already exist
@@ -49,10 +57,79 @@ class PasswordResetView(MethodView):
 
     def post(self):
         """This handles POST requests for password reset"""
-        # TODO: implement this
-        response = {'message': 'You reset password successfully.'}
+        # lets check if the user exists
+        try:
+            user = User.query.filter_by(email=request.data['email']).first()
+            access_token = user.generate_token(user.id)
+        except Exception as e:
+            response = {'message': str(e)}
+            return make_response(jsonify(response)), 400
+
+        if user and access_token:
+            # TODO: implement this
+            msg = Message(
+                "Shopping list API Password Reset",
+                sender="Shopping List API<test.mail.ug@gmail.com",
+                recipients=["luwyxx@gmail.com"])
+            msg.html = "Hello, click <a href='{}?auth_token={}'>here</a> to reset your \
+            password. If you didnt not request this please ignore".format(
+                request.base_url, access_token.decode())
+
+            try:
+                mail.send(msg)
+                response = {
+                    'message':
+                    'You request for password reset has been received. Check your email \
+                    for a reset link'
+                }
+            except Exception as e:
+                response = {'message': str(e)}
+        else:
+            response = {'message': 'User doesnt exist in the system.'}
 
         return make_response(jsonify(response)), 200
+
+    def get(self):
+
+        # Split Bearer and token then grab the token
+        access_token = str(request.args.get('auth_token', ''))
+
+        if access_token:
+            # Decode user info from jwt hashed token
+            user_id = User.decode_token(access_token)
+
+            # Check if user is authenticated
+            if not isinstance(user_id, str):
+                user = User.query.filter_by(id=user_id).first()
+                # Lets generate some string to use as the new password
+                password = str(uuid.uuid4())
+                password.replace("-", "")
+                password = password[0:8]
+                user.password = user.hash_password(password)
+                user.save()
+
+                # Lets prepare the email content
+                msg = Message(
+                    "Shopping list API Password Reset",
+                    sender="Shopping List API<test.mail.ug@gmail.com",
+                    recipients=["luwyxx@gmail.com"])
+                msg.html = "Your password was succesfully reset, you can use \
+                <b>{}</b> to login".format(password)
+                # Lets send the email
+                try:
+                    mail.send(msg)
+                    response = {
+                        'message':
+                        'You reset password for {} successfully.'.format(
+                            user.email)
+                    }
+                except Exception as e:
+                    response = {
+                        'message':
+                        'Sorry, we failed to send your password reset email.'
+                    }
+
+                return make_response(jsonify(response)), 200
 
 
 class LogoutView(MethodView):
@@ -144,4 +221,6 @@ auth_blueprint.add_url_rule(
 # Define the rule for the logout endpoint  /auth/reset-password
 # And then we add the rule to the blueprint
 auth_blueprint.add_url_rule(
-    '/auth/reset-password', view_func=password_reset_view, methods=['POST'])
+    '/auth/reset-password',
+    view_func=password_reset_view,
+    methods=['POST', 'GET'])
