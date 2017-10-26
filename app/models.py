@@ -38,6 +38,9 @@ class User(db.Model):
         db.session.add(self)
         db.session.commit()
 
+    def hash_password(self, password):
+        return Bcrypt().generate_password_hash(password).decode()
+
     def generate_token(self, user_id):
         """This Generates the access token"""
 
