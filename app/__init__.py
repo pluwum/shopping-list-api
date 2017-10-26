@@ -4,10 +4,14 @@ from flask_api import FlaskAPI, status
 from flask_sqlalchemy import SQLAlchemy
 from flask import request, jsonify, abort, make_response
 from flask_bcrypt import Bcrypt
+from flask_mail import Mail
 from instance.config import app_config
 
 # Lets initialise our db
 db = SQLAlchemy()
+
+# Lets create an instance of the mail App
+mail = Mail()
 
 
 def create_app(config_name):
@@ -27,7 +31,9 @@ def create_app(config_name):
 
     # Diasble track modifications  reduce performance over head
     app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+
     db.init_app(app)
+    mail.init_app(app)
 
     @app.route('/shoppinglists/', methods=['POST', 'GET'])
     def shoppinglists():
@@ -140,20 +146,40 @@ def create_app(config_name):
                     return make_response(jsonify(response)), 200
                 else:
                     # Handdle GET View list/Show list request here
-                    # We prepare a response with model info & return it
-                    response = jsonify({
-                        'id':
-                        shoppinglist.id,
-                        'name':
-                        shoppinglist.name,
-                        'date_created':
-                        shoppinglist.date_created,
-                        'date_modified':
-                        shoppinglist.date_modified,
-                        'user_id':
-                        shoppinglist.user_id
-                    })
-                    return make_response(response), 200
+                    shoppinglist_items = ShoppingListItem.query.filter_by(
+                        shoppinglist_id=shoppinglist.id)
+
+                    results = []
+
+                    # Prepare shopping list query results for returning to requestor
+                    # obj = {
+                    #     'id': shoppinglist.id,
+                    #     'name': shoppinglist.name,
+                    #     'date_created': shoppinglist.date_created,
+                    #     'date_modified': shoppinglist.date_modified,
+                    #     'user_id': shoppinglist.user_id,
+                    #     'type': 'list'
+                    # }
+                    # results.append(obj)
+
+                    # Prepare shopping list item query results for returning to requestor
+                    for item in shoppinglist_items:
+                        obj = {
+                            'id': item.id,
+                            'name': item.name,
+                            'date_created': item.date_created,
+                            'date_modified': item.date_modified,
+                            'shopping_list_id': item.shoppinglist_id,
+                            'type': 'item'
+                        }
+                        results.append(obj)
+
+                    if len(results) == 0:
+                        # Return a message if search didnot yield any results
+                        return {
+                            "message": "Sorry, this shopping list is empty"
+                        }, 200
+                    return make_response(jsonify(results)), 200
             else:
                 # user is not legit, so the payload is an error message
                 message = user_id
