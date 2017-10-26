@@ -4,8 +4,9 @@
 import json
 import time
 from unittest import TestCase
-from app.models import BlacklistToken
+
 from app import create_app, db
+from app.models import BlacklistToken
 
 
 class AuthTestCase(TestCase):
