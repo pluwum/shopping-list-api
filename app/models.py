@@ -87,6 +87,7 @@ class ShoppingList(db.Model):
 
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(255))
+    description = db.Column(db.String(255), nullable=True)
 
     # Define auto populated columns for create and update time
     date_created = db.Column(db.DateTime, default=db.func.current_timestamp())
@@ -104,10 +105,11 @@ class ShoppingList(db.Model):
         order_by='ShoppingListItem.id',
         cascade="all, delete-orphan")
 
-    def __init__(self, name, user_id):
+    def __init__(self, name, user_id, description):
         """Initialize with name and user id"""
         self.name = name
         self.user_id = user_id
+        self.description = description
 
     def save(self):
         """Save modifications or create the list model in the database"""
@@ -137,6 +139,8 @@ class ShoppingListItem(db.Model):
 
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(255))
+    description = db.Column(db.String(255), nullable=True)
+
     # Define a relational column to the parent shopping list
     shoppinglist_id = db.Column(db.Integer, db.ForeignKey(ShoppingList.id))
     date_created = db.Column(db.DateTime, default=db.func.current_timestamp())
@@ -145,10 +149,11 @@ class ShoppingListItem(db.Model):
         default=db.func.current_timestamp(),
         onupdate=db.func.current_timestamp())
 
-    def __init__(self, name, shoppinglist_id):
+    def __init__(self, name, shoppinglist_id, description):
         """initialize with name"""
         self.name = name
         self.shoppinglist_id = shoppinglist_id
+        self.description = description
 
     def save(self):
         """Save or update items in the database"""
