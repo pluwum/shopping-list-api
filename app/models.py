@@ -47,7 +47,7 @@ class User(db.Model):
         try:
             # Set up a time based payload
             payload = {
-                'exp': datetime.utcnow() + timedelta(minutes=52560000000000),
+                'exp': datetime.utcnow() + timedelta(minutes=525600000),
                 'iat': datetime.utcnow(),
                 'sub': user_id
             }
