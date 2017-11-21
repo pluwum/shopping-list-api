@@ -50,7 +50,7 @@ def create_app(config_name):
 
         return response
 
-    @app.route('/shoppinglists/', methods=['POST', 'GET'])
+    @app.route('/v1/shoppinglists/', methods=['POST', 'GET'])
     def shoppinglists():
         """Handle Creation and listing of shopping lists"""
         # Get token authentication information from header
@@ -121,7 +121,7 @@ def create_app(config_name):
                 response = {'message': message}
                 return make_response(jsonify(response)), 401
 
-    @app.route('/shoppinglists/<int:id>', methods=['GET', 'PUT', 'DELETE'])
+    @app.route('/v1/shoppinglists/<int:id>', methods=['GET', 'PUT', 'DELETE'])
     def shoppinglist_manipulation(id, **kwargs):
         """Handles Edit, Delete and Show shopping list"""
 
@@ -216,7 +216,7 @@ def create_app(config_name):
                 response = {'message': message}
                 return make_response(jsonify(response)), 401
 
-    @app.route('/shoppinglists/<int:id>/items', methods=['GET', 'POST'])
+    @app.route('/v1/shoppinglists/<int:id>/items', methods=['GET', 'POST'])
     def shoppinglist_items(id):
         """ This will add items to the shopping list with specified <id>"""
         # Get token authentication information from header
@@ -302,7 +302,7 @@ def create_app(config_name):
                 return make_response(jsonify(response)), 401
 
     @app.route(
-        '/shoppinglists/<int:id>/items/<int:item_id>',
+        '/v1/shoppinglists/<int:id>/items/<int:item_id>',
         methods=['PUT', 'DELETE'])
     def shoppinglist_item_manipulation(id, item_id):
         """ This handles EDIT and DELETE shopping list item actions"""
@@ -360,7 +360,7 @@ def create_app(config_name):
                 response = {'message': message}
                 return make_response(jsonify(response)), 401
 
-    @app.route('/shoppinglists/search/', methods=['GET'])
+    @app.route('/v1/shoppinglists/search/', methods=['GET'])
     def shoppinglist_search():
         """This section handles the search functionality of the API"""
         search_term = str(request.args.get('q', ''))
