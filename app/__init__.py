@@ -35,6 +35,21 @@ def create_app(config_name):
     db.init_app(app)
     mail.init_app(app)
 
+    # decorator used to allow cross origin requests
+    @app.after_request
+    def apply_cross_origin_header(response):
+        response.headers['Access-Control-Allow-Origin'] = '*'
+
+        response.headers["Access-Control-Allow-Credentials"] = "true"
+        response.headers["Access-Control-Allow-Methods"] = "GET,HEAD,OPTIONS," \
+                                                        "POST,PUT,DELETE"
+        response.headers["Access-Control-Allow-Headers"] = "Access-Control-Allow-" \
+            "Headers, Origin,Accept, X-Requested-With, Content-Type, " \
+            "Access-Control-Request-Method, Access-Control-Request-Headers," \
+            "Access-Control-Allow-Origin, Authorization"
+
+        return response
+
     @app.route('/shoppinglists/', methods=['POST', 'GET'])
     def shoppinglists():
         """Handle Creation and listing of shopping lists"""
@@ -52,14 +67,20 @@ def create_app(config_name):
                 # Lets Go a head and handle the request, the user is authed
                 if request.method == "POST":
                     name = str(request.data.get('name', ''))
+                    description = str(request.data.get('description', ''))
                     if name:
-                        shoppinglist = ShoppingList(name=name, user_id=user_id)
+                        shoppinglist = ShoppingList(
+                            name=name,
+                            user_id=user_id,
+                            description=description)
                         shoppinglist.save()
                         response = jsonify({
                             'id':
                             shoppinglist.id,
                             'name':
                             shoppinglist.name,
+                            'description':
+                            shoppinglist.description,
                             'date_created':
                             shoppinglist.date_created,
                             'date_modified':
@@ -84,6 +105,7 @@ def create_app(config_name):
                         obj = {
                             'id': shoppinglist.id,
                             'name': shoppinglist.name,
+                            'description': shoppinglist.description,
                             'date_created': shoppinglist.date_created,
                             'date_modified': shoppinglist.date_modified,
                             'user_id': shoppinglist.user_id
@@ -132,13 +154,18 @@ def create_app(config_name):
                     # We handle PUT request to edit list here
                     # Grab the name form parameter and save it to the database
                     name = str(request.data.get('name', ''))
+                    description = str(request.data.get('description', ''))
                     shoppinglist.name = name
+
+                    if (description):
+                        shoppinglist.description = description
                     shoppinglist.save()
 
                     # Now we prepare a response and return it to the requester
                     response = {
                         'id': shoppinglist.id,
                         'name': shoppinglist.name,
+                        'description': shoppinglist.description,
                         'date_created': shoppinglist.date_created,
                         'date_modified': shoppinglist.date_modified,
                         'user_id': shoppinglist.user_id
@@ -151,34 +178,37 @@ def create_app(config_name):
 
                     results = []
 
-                    # Prepare shopping list query results for returning to requestor
-                    # obj = {
-                    #     'id': shoppinglist.id,
-                    #     'name': shoppinglist.name,
-                    #     'date_created': shoppinglist.date_created,
-                    #     'date_modified': shoppinglist.date_modified,
-                    #     'user_id': shoppinglist.user_id,
-                    #     'type': 'list'
-                    # }
-                    # results.append(obj)
+                    # Prepare shopping list query results for returning to
+                    # requestor
+                    obj = {
+                        'id': shoppinglist.id,
+                        'name': shoppinglist.name,
+                        'description': shoppinglist.description,
+                        'date_created': shoppinglist.date_created,
+                        'date_modified': shoppinglist.date_modified,
+                        'user_id': shoppinglist.user_id,
+                        'type': 'list'
+                    }
+                    results.append(obj)
 
-                    # Prepare shopping list item query results for returning to requestor
-                    for item in shoppinglist_items:
-                        obj = {
-                            'id': item.id,
-                            'name': item.name,
-                            'date_created': item.date_created,
-                            'date_modified': item.date_modified,
-                            'shopping_list_id': item.shoppinglist_id,
-                            'type': 'item'
-                        }
-                        results.append(obj)
+                    # Prepare shopping list item query results for returning
+                    # to requestor
+                    # for item in shoppinglist_items:
+                    #     obj = {
+                    #         'id': item.id,
+                    #         'name': item.name,
+                    #         'date_created': item.date_created,
+                    #         'date_modified': item.date_modified,
+                    #         'shopping_list_id': item.shoppinglist_id,
+                    #         'type': 'item'
+                    #     }
+                    #     results.append(obj)
 
                     if len(results) == 0:
                         # Return a message if search didnot yield any results
                         return {
-                            "message": "Sorry, this shopping list is empty"
-                        }, 200
+                            "message": "Sorry, this shopping list doesnt exist"
+                        }, 404
                     return make_response(jsonify(results)), 200
             else:
                 # user is not legit, so the payload is an error message
@@ -186,7 +216,7 @@ def create_app(config_name):
                 response = {'message': message}
                 return make_response(jsonify(response)), 401
 
-    @app.route('/shoppinglists/<int:id>/items', methods=['POST'])
+    @app.route('/shoppinglists/<int:id>/items', methods=['GET', 'POST'])
     def shoppinglist_items(id):
         """ This will add items to the shopping list with specified <id>"""
         # Get token authentication information from header
@@ -198,30 +228,73 @@ def create_app(config_name):
             # Decode user info from jwt hashed token
             user_id = User.decode_token(access_token)
             if not isinstance(user_id, str):
-                # Go ahead and handle the request, since the user is authed
-                name = str(request.data.get('name', ''))
-                if name:
-                    # Create a shopping list item model and persist it the DB
-                    shoppinglist_item = ShoppingListItem(
-                        name=name, shoppinglist_id=id)
-                    shoppinglist_item.save()
+                shoppinglist = ShoppingList.query.filter_by(id=id).first()
+                if not shoppinglist:
+                    # When no shopping list is found, we throw an
+                    # HTTPException with a 404 not found status code
+                    return {
+                        "message": "Sorry, this shopping list doesnt exist"
+                    }, 404
+                if request.method == "POST":
+                    # Go ahead and handle the request, since the user is authed
+                    name = str(request.data.get('name', ''))
+                    description = str(request.data.get('description', ''))
+                    if name:
+                        # Create a shopping list item model and persist it
+                        shoppinglist_item = ShoppingListItem(
+                            name=name,
+                            shoppinglist_id=id,
+                            description=description)
+                        shoppinglist_item.save()
 
-                    # Prepare a response and return it to the requestor
-                    response = jsonify({
-                        'id':
-                        shoppinglist_item.id,
-                        'name':
-                        shoppinglist_item.name,
-                        'date_created':
-                        shoppinglist_item.date_created,
-                        'date_modified':
-                        shoppinglist_item.date_modified,
-                        'user_id':
-                        user_id,
-                        'shoppinglist_id':
-                        id
-                    })
-                    return make_response(response), 201
+                        # Prepare a response and return it to the requestor
+                        response = jsonify({
+                            'id':
+                            shoppinglist_item.id,
+                            'name':
+                            shoppinglist_item.name,
+                            'description':
+                            shoppinglist_item.description,
+                            'date_created':
+                            shoppinglist.description,
+                            'date_created':
+                            shoppinglist_item.date_created,
+                            'date_modified':
+                            shoppinglist_item.date_modified,
+                            'user_id':
+                            user_id,
+                            'shoppinglist_id':
+                            id
+                        })
+                        return make_response(response), 201
+                if request.method == "GET":
+                    # Handdle GET View list/Show list request here
+                    shoppinglist_items = ShoppingListItem.query.filter_by(
+                        shoppinglist_id=shoppinglist.id)
+
+                    results = []
+
+                    # Prepare shopping list item query results for returning
+                    # to requestor
+                    for item in shoppinglist_items:
+                        obj = {
+                            'id': item.id,
+                            'name': item.name,
+                            'description': item.description,
+                            'date_created': item.date_created,
+                            'date_modified': item.date_modified,
+                            'shopping_list_id': item.shoppinglist_id,
+                            'type': 'item'
+                        }
+                        results.append(obj)
+
+                    if len(results) == 0:
+                        # Return a message if search didnot yield any results
+                        return {
+                            "message": "Sorry, this shopping list is empty"
+                        }, 404
+                    return make_response(jsonify(results)), 200
+
             else:
                 # User is not authenticated so return message from JWT decode()
                 message = user_id
@@ -264,13 +337,17 @@ def create_app(config_name):
                     # Handle Editing of item here
                     # Grab new item name as string and pass it to the database
                     name = str(request.data.get('name', ''))
+                    description = str(request.data.get('description', ''))
                     shoppinglist_item.name = name
+                    if (description):
+                        shoppinglist_item.description = description
                     shoppinglist_item.save()
 
                     # Prepare response and return it to the user
                     response = {
                         'id': shoppinglist_item.id,
                         'name': shoppinglist_item.name,
+                        'description': shoppinglist_item.description,
                         'date_created': shoppinglist_item.date_created,
                         'date_modified': shoppinglist_item.date_modified,
                         'user_id': user_id,
@@ -304,6 +381,7 @@ def create_app(config_name):
             obj = {
                 'id': shoppinglist.id,
                 'name': shoppinglist.name,
+                'description': shoppinglist.description,
                 'date_created': shoppinglist.date_created,
                 'date_modified': shoppinglist.date_modified,
                 'user_id': shoppinglist.user_id,
@@ -316,6 +394,7 @@ def create_app(config_name):
             obj = {
                 'id': item.id,
                 'name': item.name,
+                'description': item.description,
                 'date_created': item.date_created,
                 'date_modified': item.date_modified,
                 'shopping_list_id': item.shoppinglist_id,
