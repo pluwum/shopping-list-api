@@ -24,6 +24,9 @@ class Config(object):
     # administrator list
     ADMINS = ['test.mail.ug@gmail.com']
 
+    # API Versioning
+    API_VERSION = 'v1'
+
 
 class DevelopmentConfig(Config):
     """Configurations for Development."""
