@@ -50,7 +50,28 @@ def create_app(config_name):
 
         return response
 
+    def check_logged_in(function):
+        def wrapper():
+            # Get token authentication information from header
+            auth_header = request.headers.get('Authorization')
+            # Split Bearer and token then grab the token
+            access_token = auth_header.split(" ")[1]
+
+            if access_token:
+                # Decode user info from jwt hashed token
+                user_id = User.decode_token(access_token)
+
+                # Check if user is user is authenticated
+                if not isinstance(user_id, str):
+                    return function()
+                else:
+                    message = user_id
+                    return {"message": message}, 401
+
+        return wrapper
+
     @app.route('/v1/shoppinglists/', methods=['POST', 'GET'])
+    @check_logged_in
     def shoppinglists():
         """Handle Creation and listing of shopping lists"""
         # Get token authentication information from header
