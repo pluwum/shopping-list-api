@@ -17,10 +17,20 @@ class RegistrationView(MethodView):
 
     def post(self):
         """Handle POST requests for the registration endpoint"""
+        # check for email
+        if ('email' in request.data and request.data['email'] is not ''):
+            email = request.data['email']
+        else:
+            return {"message": "Sorry, please supply an email"}, 400
+        # check for password
+        if ('password' in request.data and request.data['password'] is not ''):
+            password = request.data['password']
+        else:
+            return {"message": "Sorry, please supply a password"}, 400
 
         # lets check if the user already exists
         try:
-            user = User.query.filter_by(email=request.data['email']).first()
+            user = User.query.filter_by(email=email).first()
         except Exception as e:
             response = {'message': str(e)}
             return make_response(jsonify(response)), 400
@@ -29,9 +39,6 @@ class RegistrationView(MethodView):
             # This user doesn't exist, so lets create them
             try:
                 # Grab email and password and save them to the database
-                post_data = request.data
-                email = post_data['email']
-                password = post_data['password']
                 user = User(email=email, password=password)
                 user.save()
 
@@ -118,11 +125,16 @@ class PasswordResetView(MethodView):
                 # Lets send the email
                 try:
                     mail.send(msg)
+                    # blacklist the token used
+                    blacklist_token = BlacklistToken(token=access_token)
+                    blacklist_token.save()
+
                     response = {
                         'message':
                         'You reset password for {} successfully.'.format(
                             user.email)
                     }
+
                 except Exception as e:
                     response = {
                         'message':
