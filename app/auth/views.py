@@ -206,21 +206,21 @@ password_reset_view = PasswordResetView.as_view('password_reset_view')
 # Add the rule for the registration end point  /auth/register
 # Then we can add the rule to the blueprint
 auth_blueprint.add_url_rule(
-    '/auth/register', view_func=registration_view, methods=['POST'])
+    '/v1/auth/register', view_func=registration_view, methods=['POST'])
 
 # Define the rule for the login endpoint  /auth/login
 # And then we add the rule to the blueprint
 auth_blueprint.add_url_rule(
-    '/auth/login', view_func=login_view, methods=['POST'])
+    '/v1/auth/login', view_func=login_view, methods=['POST'])
 
 # Define the rule for the logout endpoint  /auth/logout
 # And then we add the rule to the blueprint
 auth_blueprint.add_url_rule(
-    '/auth/logout', view_func=logout_view, methods=['POST'])
+    '/v1/auth/logout', view_func=logout_view, methods=['POST'])
 
 # Define the rule for the logout endpoint  /auth/reset-password
 # And then we add the rule to the blueprint
 auth_blueprint.add_url_rule(
-    '/auth/reset-password',
+    '/v1/auth/reset-password',
     view_func=password_reset_view,
     methods=['POST', 'GET'])
