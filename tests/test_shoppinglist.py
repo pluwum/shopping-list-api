@@ -25,19 +25,13 @@ class ShoppingListTests(TestCase):
 
     def register_user(self, email="user@test.com", password="test1234"):
         """This method registers a new user for testing puporses"""
-        user_data = {
-            'email': email,
-            'password': password
-        }
-        return self.client().post('/auth/register', data=user_data)
+        user_data = {'email': email, 'password': password}
+        return self.client().post('/v1/auth/register', data=user_data)
 
     def login_user(self, email="user@test.com", password="test1234"):
         """This method logs in user"""
-        user_data = {
-            'email': email,
-            'password': password
-        }
-        return self.client().post('/auth/login', data=user_data)
+        user_data = {'email': email, 'password': password}
+        return self.client().post('/v1/auth/login', data=user_data)
 
     def test_shoppinglist_creation(self):
         """Test API can create a shoppinglist using POST"""
@@ -47,7 +41,7 @@ class ShoppingListTests(TestCase):
 
         # Create a shoppinglist by making a POST request
         result = self.client().post(
-            '/shoppinglists/',
+            '/v1/shoppinglists/',
             headers=dict(Authorization="Bearer " + access_token),
             data=self.shoppinglist)
 
@@ -64,14 +58,14 @@ class ShoppingListTests(TestCase):
 
         # Create a shoppinglist
         res = self.client().post(
-            '/shoppinglists/',
+            '/v1/shoppinglists/',
             headers=dict(Authorization="Bearer " + access_token),
             data=self.shoppinglist)
         self.assertEqual(res.status_code, 201)
 
         # Get all the shoppinglist that belong to the test user
         res = self.client().get(
-            '/shoppinglists/',
+            '/v1/shoppinglists/',
             headers=dict(Authorization="Bearer " + access_token),
         )
 
@@ -89,7 +83,7 @@ class ShoppingListTests(TestCase):
 
         # We create a test shopping list
         new_list_response = self.client().post(
-            '/shoppinglists/',
+            '/v1/shoppinglists/',
             headers=dict(Authorization="Bearer " + access_token),
             data=self.shoppinglist)
 
@@ -101,7 +95,7 @@ class ShoppingListTests(TestCase):
 
         # Requests the server for the shopping list by ID
         get_list_by_id_reponse = self.client().get(
-            '/shoppinglists/{}'.format(results['id']),
+            '/v1/shoppinglists/{}'.format(results['id']),
             headers=dict(Authorization="Bearer " + access_token))
 
         # Check that the shoppinglist with ID is returned
@@ -117,9 +111,11 @@ class ShoppingListTests(TestCase):
 
         # Lets create a shoppinglist using POST
         new_list_response = self.client().post(
-            '/shoppinglists/',
+            '/v1/shoppinglists/',
             headers=dict(Authorization="Bearer " + access_token),
-            data={'name': 'Christmas Shopping'})
+            data={
+                'name': 'Christmas Shopping'
+            })
         # Make sure the list is created well
         self.assertEqual(new_list_response.status_code, 201)
 
@@ -128,7 +124,7 @@ class ShoppingListTests(TestCase):
 
         # Now Edit the created list using PUT
         edited_list_response = self.client().put(
-            '/shoppinglists/{}'.format(results['id']),
+            '/v1/shoppinglists/{}'.format(results['id']),
             headers=dict(Authorization="Bearer " + access_token),
             data={
                 "name": "Christmas Shopping for the kids"
@@ -138,7 +134,7 @@ class ShoppingListTests(TestCase):
 
         # Finally, we get the edited shoppinglist to see if it changed.
         edited_list_response = self.client().get(
-            '/shoppinglists/{}'.format(results['id']),
+            '/v1/shoppinglists/{}'.format(results['id']),
             headers=dict(Authorization="Bearer " + access_token))
         self.assertIn('for the kids', str(edited_list_response.data))
 
@@ -150,9 +146,11 @@ class ShoppingListTests(TestCase):
 
         # Lets create a shopping list
         new_list_response = self.client().post(
-            '/shoppinglists/',
+            '/v1/shoppinglists/',
             headers=dict(Authorization="Bearer " + access_token),
-            data={'name': 'Favourite books'})
+            data={
+                'name': 'Favourite books'
+            })
 
         # Confirm that the server created the resource
         self.assertEqual(new_list_response.status_code, 201)
@@ -162,13 +160,14 @@ class ShoppingListTests(TestCase):
 
         # Delete the shoppinglist we just created above
         delete_response = self.client().delete(
-            '/shoppinglists/{}'.format(results['id']),
-            headers=dict(Authorization="Bearer " + access_token),)
+            '/v1/shoppinglists/{}'.format(results['id']),
+            headers=dict(Authorization="Bearer " + access_token),
+        )
         self.assertEqual(delete_response.status_code, 200)
 
         # Now lets try to retrieve the entry we deleted
         response = self.client().get(
-            '/shoppinglists/{}'.format(results['id']),
+            '/v1/shoppinglists/{}'.format(results['id']),
             headers=dict(Authorization="Bearer " + access_token))
 
         # Check that the server could not find the resource
@@ -182,9 +181,11 @@ class ShoppingListTests(TestCase):
 
         # Lets first create a shopping list
         new_list_response = self.client().post(
-            '/shoppinglists/',
+            '/v1/shoppinglists/',
             headers=dict(Authorization="Bearer " + access_token),
-            data={'name': 'Shoes and Bags'})
+            data={
+                'name': 'Shoes and Bags'
+            })
 
         # Make sure the server succesfully created resource
         self.assertEqual(new_list_response.status_code, 201)
@@ -194,9 +195,11 @@ class ShoppingListTests(TestCase):
 
         # Now lets add an item to the shoppinglist we just created
         add_item_response = self.client().post(
-            '/shoppinglists/{}/items'.format(results['id']),
-            headers=dict(Authorization="Bearer " + access_token), data={
-                'name': 'Milk'})
+            '/v1/shoppinglists/{}/items'.format(results['id']),
+            headers=dict(Authorization="Bearer " + access_token),
+            data={
+                'name': 'Milk'
+            })
 
         # Lets check that the server managed to create resource
         self.assertEqual(add_item_response.status_code, 201)
@@ -209,9 +212,11 @@ class ShoppingListTests(TestCase):
 
         # Lets create a new shopping list
         new_list_response = self.client().post(
-            '/shoppinglists/',
+            '/v1/shoppinglists/',
             headers=dict(Authorization="Bearer " + access_token),
-            data={'name': 'Shoes and Bags'})
+            data={
+                'name': 'Shoes and Bags'
+            })
         self.assertEqual(new_list_response.status_code, 201)
 
         # Get the shoppinglist in json
@@ -219,9 +224,11 @@ class ShoppingListTests(TestCase):
 
         # Add item to the shoppinglist we just created
         add_item_response = self.client().post(
-            '/shoppinglists/{}/items'.format(results['id']),
-            headers=dict(Authorization="Bearer " + access_token), data={
-                'name': 'Milk'})
+            '/v1/shoppinglists/{}/items'.format(results['id']),
+            headers=dict(Authorization="Bearer " + access_token),
+            data={
+                'name': 'Milk'
+            })
 
         # Make sure server says item was added
         self.assertEqual(add_item_response.status_code, 201)
@@ -231,8 +238,8 @@ class ShoppingListTests(TestCase):
 
         # Now Lets edit the, we edit the list item
         edit_item_response = self.client().put(
-            '/shoppinglists/{}/items/{}'.format(
-                results['shoppinglist_id'], results['id']),
+            '/v1/shoppinglists/{}/items/{}'.format(results['shoppinglist_id'],
+                                                   results['id']),
             headers=dict(Authorization="Bearer " + access_token),
             data={
                 "name": "whole milk"
@@ -249,9 +256,11 @@ class ShoppingListTests(TestCase):
 
         # Lets create a shopping list for this test
         new_list_response = self.client().post(
-            '/shoppinglists/',
+            '/v1/shoppinglists/',
             headers=dict(Authorization="Bearer " + access_token),
-            data={'name': 'Shoes and Bags'})
+            data={
+                'name': 'Shoes and Bags'
+            })
         self.assertEqual(new_list_response.status_code, 201)
 
         # Turn the response to JSON format
@@ -259,9 +268,11 @@ class ShoppingListTests(TestCase):
 
         # Add item to the shoppinglist we just created
         add_item_response = self.client().post(
-            '/shoppinglists/{}/items'.format(results['id']),
-            headers=dict(Authorization="Bearer " + access_token), data={
-                'name': 'Milk'})
+            '/v1/shoppinglists/{}/items'.format(results['id']),
+            headers=dict(Authorization="Bearer " + access_token),
+            data={
+                'name': 'Milk'
+            })
 
         # Lets first make sure the item was created before we delete
         self.assertEqual(add_item_response.status_code, 201)
@@ -271,9 +282,10 @@ class ShoppingListTests(TestCase):
 
         # Now we can delete the item from the shoppinglist we just created
         delete_item_response = self.client().delete(
-            '/shoppinglists/{}/items/{}'.format(
-                results['shoppinglist_id'], results['id']),
-            headers=dict(Authorization="Bearer " + access_token),)
+            '/v1/shoppinglists/{}/items/{}'.format(results['shoppinglist_id'],
+                                                   results['id']),
+            headers=dict(Authorization="Bearer " + access_token),
+        )
         self.assertEqual(delete_item_response.status_code, 200)
 
 

@@ -11,6 +11,22 @@ class Config(object):
     SQLALCHEMY_DATABASE_URI = 'postgresql://postgres@localhost/'\
         'shoppinglist'
 
+    # email server
+    MAIL_SERVER = 'smtp.gmail.com'
+    MAIL_PORT = 587
+    MAIL_USE_TLS = True
+    MAIL_USE_SSL = False
+    MAIL_USERNAME = 'test.mail.ug@gmail.com'
+    MAIL_PASSWORD = '!kampala01'
+    # MAIL_USERNAME = os.environ.get('MAIL_USERNAME')
+    # MAIL_PASSWORD = os.environ.get('MAIL_PASSWORD')
+
+    # administrator list
+    ADMINS = ['test.mail.ug@gmail.com']
+
+    # API Versioning
+    API_VERSION = 'v1'
+
 
 class DevelopmentConfig(Config):
     """Configurations for Development."""
