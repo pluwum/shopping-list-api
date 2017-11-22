@@ -1,12 +1,9 @@
 """This file contains API endpoint logic for the APP"""
-import json
 from flask_api import FlaskAPI, status
 from flask_sqlalchemy import SQLAlchemy
-from flask import request, jsonify, abort, make_response
 from flask_bcrypt import Bcrypt
 from flask_mail import Mail
 from instance.config import app_config
-from functools import wraps
 # Lets initialise our db
 db = SQLAlchemy()
 

@@ -1,22 +1,10 @@
 """This file contains API endpoint logic for the APP"""
-import json
-from flask_api import FlaskAPI, status
-from flask_sqlalchemy import SQLAlchemy
-from flask import Blueprint, request, jsonify, abort, make_response
-from flask_bcrypt import Bcrypt
-from flask_mail import Mail
-from instance.config import app_config
-from functools import wraps
-
-from flask.views import MethodView
-from . import item_blueprint
-from app.models import ShoppingList, User, ShoppingListItem
 from app.decorators import check_logged_in
-# Lets initialise our db
-db = SQLAlchemy()
+from app.models import ShoppingList, ShoppingListItem
+from flask import jsonify, make_response, request
+from flask.views import MethodView
 
-# Lets create an instance of the mail App
-mail = Mail()
+from . import item_blueprint
 
 
 class ItemView(MethodView):

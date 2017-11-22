@@ -26,12 +26,12 @@ class ShoppingListTests(TestCase):
     def register_user(self, email="user@test.com", password="test1234"):
         """This method registers a new user for testing puporses"""
         user_data = {'email': email, 'password': password}
-        return self.client().post('/auth/register', data=user_data)
+        return self.client().post('/v1/auth/register', data=user_data)
 
     def login_user(self, email="user@test.com", password="test1234"):
         """This method logs in user"""
         user_data = {'email': email, 'password': password}
-        return self.client().post('/auth/login', data=user_data)
+        return self.client().post('/v1/auth/login', data=user_data)
 
     def test_shoppinglist_creation(self):
         """Test API can create a shoppinglist using POST"""
