@@ -11,6 +11,7 @@ from functools import wraps
 from flask.views import MethodView
 from . import shoppinglist_blueprint
 from app.models import ShoppingList, User, ShoppingListItem
+from app.decorators import check_logged_in
 # Lets initialise our db
 db = SQLAlchemy()
 
@@ -18,32 +19,7 @@ db = SQLAlchemy()
 mail = Mail()
 
 
-def check_logged_in(function):
-    @wraps(function)
-    def wrapper(self, *args, **kwargs):
-        # Get token authentication information from header
-        auth_header = request.headers.get('Authorization')
-        message = "Not permited because Authorization header not " \
-            "provided with this request!"
-        if auth_header is not None:
-            # Split Bearer and token then grab the token
-            access_token = auth_header.split(" ")[1]
-
-            if access_token:
-                # Decode user info from jwt hashed token
-                user_id = User.decode_token(access_token)
-
-                # Check if user is user is authenticated
-                if not isinstance(user_id, str):
-                    return function(self, user_id, *args, **kwargs)
-                else:
-                    message = user_id
-        return {"message": message}, 401
-
-    return wrapper
-
-
-class ShoppinglistView(MethodView):
+class ShoppinglistsView(MethodView):
     """Handle Creation and listing of shopping lists"""
 
     @check_logged_in
@@ -92,10 +68,96 @@ class ShoppinglistView(MethodView):
             return make_response(jsonify(response)), 200
 
 
-# Lets make our views callable
-shoppinglist_view = ShoppinglistView.as_view('shoppinglist_view')
+class ShoppinglistManipulationView(MethodView):
+    """Handles Edit, Delete and Show shopping list"""
 
-# Add the rule for the shoppinglist end point  /auth/register
-# Then we can add the rule to the blueprint
+    @check_logged_in
+    def delete(self, user_id, id):
+        shoppinglist = ShoppingList.query.filter_by(id=id).first()
+        if not shoppinglist:
+            # When no shopping list is found, we throw an
+            # HTTPException with a 404 not found status code
+            return {
+                "message": "shoppinglist with id {} not found".format(id)
+            }, 404
+
+        if request.method == "DELETE":
+            # We handle DELETE the Delete request here
+            shoppinglist.delete()
+            return {
+                "message": "shoppinglist {} deleted".format(shoppinglist.id)
+            }, 200
+
+    @check_logged_in
+    def get(self, user_id, id):
+        shoppinglist = ShoppingList.query.filter_by(id=id).first()
+        if not shoppinglist:
+            # When no shopping list is found, we throw an
+            # HTTPException with a 404 not found status code
+            return {
+                "message": "shoppinglist with id {} not found".format(id)
+            }, 404
+
+        results = []
+
+        # Prepare shopping list query results for returning to
+        # requestor
+        obj = {
+            'id': shoppinglist.id,
+            'name': shoppinglist.name,
+            'description': shoppinglist.description,
+            'date_created': shoppinglist.date_created,
+            'date_modified': shoppinglist.date_modified,
+            'user_id': shoppinglist.user_id,
+            'type': 'list'
+        }
+        results.append(obj)
+        return make_response(jsonify(results)), 200
+
+    @check_logged_in
+    def put(self, user_id, id):
+        # We handle PUT request to edit list here
+        # Grab the name form parameter and save it to the database
+        shoppinglist = ShoppingList.query.filter_by(id=id).first()
+        if not shoppinglist:
+            # When no shopping list is found, we throw an
+            # HTTPException with a 404 not found status code
+            return {
+                "message": "shoppinglist with id {} not found".format(id)
+            }, 404
+
+        name = str(request.data.get('name', ''))
+        description = str(request.data.get('description', ''))
+        shoppinglist.name = name
+
+        if description:
+            shoppinglist.description = description
+        shoppinglist.save()
+
+        # Now we prepare a response and return it to the requester
+        response = {
+            'id': shoppinglist.id,
+            'name': shoppinglist.name,
+            'description': shoppinglist.description,
+            'date_created': shoppinglist.date_created,
+            'date_modified': shoppinglist.date_modified,
+            'user_id': shoppinglist.user_id
+        }
+        return make_response(jsonify(response)), 200
+
+
+# Lets make our views callable
+shoppinglists_view = ShoppinglistsView.as_view('shoppinglists_view')
+shoppinglist_manipulation_view = ShoppinglistManipulationView.as_view(
+    'shoppinglist_manipulation_view')
+
+# Then we can add the rules to the blueprint
 shoppinglist_blueprint.add_url_rule(
-    '/v1/shoppinglists/', view_func=shoppinglist_view, methods=['POST', 'GET'])
+    '/v1/shoppinglists/',
+    view_func=shoppinglists_view,
+    methods=['POST', 'GET'])
+
+shoppinglist_blueprint.add_url_rule(
+    '/v1/shoppinglists/<int:id>',
+    view_func=shoppinglist_manipulation_view,
+    methods=['GET', 'PUT', 'DELETE'])
