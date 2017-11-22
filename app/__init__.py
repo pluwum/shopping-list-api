@@ -74,59 +74,6 @@ def create_app(config_name):
 
         return wrapper
 
-    @app.route('/v1/shoppinglists/', methods=['POST', 'GET'])
-    @check_logged_in
-    def shoppinglists(user_id):
-        """Handle Creation and listing of shopping lists"""
-
-        if request.method == "POST":
-            name = str(request.data.get('name', ''))
-            description = str(request.data.get('description', ''))
-            if name:
-                shoppinglist = ShoppingList(
-                    name=name, user_id=user_id, description=description)
-                shoppinglist.save()
-                response = jsonify({
-                    'id':
-                    shoppinglist.id,
-                    'name':
-                    shoppinglist.name,
-                    'description':
-                    shoppinglist.description,
-                    'date_created':
-                    shoppinglist.date_created,
-                    'date_modified':
-                    shoppinglist.date_modified,
-                    'user_id':
-                    user_id
-                })
-
-                return make_response(response), 201
-            else:
-                message = "Name field not passed with request."\
-                    "Please try again"
-                response = {'message': message}
-                return make_response(jsonify(response)), 200
-        else:
-            # Executes if request is GET
-            # Return all shopping list for authed User
-            shoppinglists = ShoppingList.get_all(user_id)
-            results = []
-
-            for shoppinglist in shoppinglists:
-                obj = {
-                    'id': shoppinglist.id,
-                    'name': shoppinglist.name,
-                    'description': shoppinglist.description,
-                    'date_created': shoppinglist.date_created,
-                    'date_modified': shoppinglist.date_modified,
-                    'user_id': shoppinglist.user_id
-                }
-                results.append(obj)
-
-            # Return reponse with shopping lists and set server code
-            return make_response(jsonify(results)), 200
-
     @app.route('/v1/shoppinglists/<int:id>', methods=['GET', 'PUT', 'DELETE'])
     @check_logged_in
     def shoppinglist_manipulation(user_id, id, **kwargs):
@@ -356,6 +303,8 @@ def create_app(config_name):
 
     # import the authentication blueprint and register it to our the app
     from .auth import auth_blueprint
+    from .shoppinglist import shoppinglist_blueprint
     app.register_blueprint(auth_blueprint)
+    app.register_blueprint(shoppinglist_blueprint)
 
     return app
