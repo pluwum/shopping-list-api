@@ -101,47 +101,49 @@ class PasswordResetView(MethodView):
         # Split Bearer and token then grab the token
         access_token = str(request.args.get('auth_token', ''))
 
-        if access_token:
-            # Decode user info from jwt hashed token
-            user_id = User.decode_token(access_token)
+        if not access_token:
+            return {"message": "Sorry, temporary access token not found"}, 401
 
-            # Check if user is authenticated
-            if not isinstance(user_id, str):
-                user = User.query.filter_by(id=user_id).first()
-                # Lets generate some string to use as the new password
-                password = str(uuid.uuid4())
-                password.replace("-", "")
-                password = password[0:8]
-                user.password = user.hash_password(password)
-                user.save()
+        # Decode user info from jwt hashed token
+        user_id = User.decode_token(access_token)
 
-                # Lets prepare the email content
-                msg = Message(
-                    "Shopping list API Password Reset",
-                    sender="Shopping List API<test.mail.ug@gmail.com",
-                    recipients=["luwyxx@gmail.com"])
-                msg.html = "Your password was succesfully reset, you can use \
-                <b>{}</b> to login".format(password)
-                # Lets send the email
-                try:
-                    mail.send(msg)
-                    # blacklist the token used
-                    blacklist_token = BlacklistToken(token=access_token)
-                    blacklist_token.save()
+        # Check if user is authenticated
+        if not isinstance(user_id, str):
+            user = User.query.filter_by(id=user_id).first()
+            # Lets generate some string to use as the new password
+            password = str(uuid.uuid4())
+            password.replace("-", "")
+            password = password[0:8]
+            user.password = user.hash_password(password)
+            user.save()
 
-                    response = {
-                        'message':
-                        'You reset password for {} successfully.'.format(
-                            user.email)
-                    }
+            # Lets prepare the email content
+            msg = Message(
+                "Shopping list API Password Reset",
+                sender="Shopping List API<test.mail.ug@gmail.com",
+                recipients=["luwyxx@gmail.com"])
+            msg.html = "Your password was succesfully reset, you can use \
+            <b>{}</b> to login".format(password)
+            # Lets send the email
+            try:
+                mail.send(msg)
+                # blacklist the token used
+                blacklist_token = BlacklistToken(token=access_token)
+                blacklist_token.save()
 
-                except Exception as e:
-                    response = {
-                        'message':
-                        'Sorry, we failed to send your password reset email.'
-                    }
+                response = {
+                    'message':
+                    'You reset password for {} successfully.'.format(
+                        user.email)
+                }
 
-                return make_response(jsonify(response)), 200
+            except Exception as e:
+                response = {
+                    'message':
+                    'Sorry, we failed to send your password reset email.'
+                }
+
+            return make_response(jsonify(response)), 200
 
 
 class LogoutView(MethodView):
