@@ -184,7 +184,8 @@ class ShoppingListTests(TestCase):
             '/v1/shoppinglists/',
             headers=dict(Authorization="Bearer " + access_token),
             data={
-                'name': 'Shoes and Bags'
+                'name': 'Shoes and Bags',
+                'description': 'shoes and bags'
             })
 
         # Make sure the server succesfully created resource
@@ -198,7 +199,8 @@ class ShoppingListTests(TestCase):
             '/v1/shoppinglists/{}/items'.format(results['id']),
             headers=dict(Authorization="Bearer " + access_token),
             data={
-                'name': 'Milk'
+                'name': 'Milk',
+                'description': 'milk'
             })
 
         # Lets check that the server managed to create resource
@@ -215,7 +217,8 @@ class ShoppingListTests(TestCase):
             '/v1/shoppinglists/',
             headers=dict(Authorization="Bearer " + access_token),
             data={
-                'name': 'Shoes and Bags'
+                'name': 'Shoes and Bags',
+                'description': 'shoes and bags'
             })
         self.assertEqual(new_list_response.status_code, 201)
 
@@ -227,7 +230,8 @@ class ShoppingListTests(TestCase):
             '/v1/shoppinglists/{}/items'.format(results['id']),
             headers=dict(Authorization="Bearer " + access_token),
             data={
-                'name': 'Milk'
+                'name': 'Milk',
+                'description': 'milk'
             })
 
         # Make sure server says item was added

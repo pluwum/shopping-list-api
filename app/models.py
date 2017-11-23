@@ -174,7 +174,7 @@ class ShoppingList(db.Model):
     @staticmethod
     def verify_name(name):
         name = name.strip()
-        min_length = 5
+        min_length = 2
         if name is None:
             raise ValueError('Name cannot be empty or only spaces')
         if len(name) < min_length:
@@ -247,7 +247,7 @@ class ShoppingListItem(db.Model):
     @staticmethod
     def verify_name(name):
         name = name.strip()
-        min_length = 5
+        min_length = 2
         if name is None:
             raise ValueError('name cannot be empty or only spaces')
         if len(name) < min_length:
