@@ -25,7 +25,7 @@ GET/shoppinglists/<id>/items/  | | JSON
 POST /shoppinglists/<id>/items/  | name, description | JSON
 PUT /shoppinglists/<id>/items/<item_id>  | name, description |JSON
 DELETE /shoppinglists/<id>/items/<item_id> | | JSON
-GET /shoppinglists/search/q=<serach_term> | | JSON
+GET /shoppinglists/search/q=<search_term> | | JSON
 
 # Motivation
 
