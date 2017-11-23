@@ -5,6 +5,7 @@ from datetime import datetime, timedelta
 
 import jwt
 from app import db
+from app.exceptions import ValueNotFoundError
 from flask_bcrypt import Bcrypt
 
 
@@ -79,6 +80,33 @@ class User(db.Model):
             # When the token is invalid, return an error string
             return "Invalid token. Please register or login"
 
+    @staticmethod
+    def verify_username(username):
+        username = username.strip()
+        min_length = 5
+        if username is None:
+            raise ValueError('Email cannot be empty or only spaces')
+        if len(username) < min_length:
+            raise ValueError(
+                'Email cannot be less than {} '.format(min_length))
+        if not isinstance(username, str):
+            raise TypeError('Email must be as string')
+        return username
+
+    @staticmethod
+    def verify_password(password):
+        password = password.strip()
+        min_length = 4
+        if password is None:
+            raise ValueError('Password cannot be empty or only spaces')
+        if len(password) < min_length:
+            raise ValueError(
+                'Password cannot be less than {} characters'.format(
+                    min_length))
+        if not isinstance(password, str):
+            raise TypeError('Password must be as string')
+        return password
+
 
 class ShoppingList(db.Model):
     """This class represents the shoppinglists table."""
@@ -117,19 +145,52 @@ class ShoppingList(db.Model):
         db.session.commit()
 
     @staticmethod
-    def get_all(user_id):
+    def get_all(user_id, page=None, per_page=None):
         """Get all lists belonging to user_id"""
-        return ShoppingList.query.filter_by(user_id=user_id)
+        return ShoppingList.query.filter_by(user_id=user_id).paginate(
+            page, per_page).items
 
     def delete(self):
         """Delete User model from the database"""
         db.session.delete(self)
         db.session.commit()
 
+    @staticmethod
+    def get_shopping_list(user_id, id):
+        shoppinglist = ShoppingList.query.filter_by(
+            id=id, user_id=user_id).first()
+
+        if not shoppinglist:
+            # When no shopping list is found, we throw an error
+            raise ValueNotFoundError(
+                'A shopping list with given ID was not found for this user')
+        return shoppinglist
+
     def __repr__(self):
         """Lets return a printable representation of this object as
         good practice"""
         return "<Shoppinglist: {}>".format(self.name)
+
+    @staticmethod
+    def verify_name(name):
+        name = name.strip()
+        min_length = 5
+        if name is None:
+            raise ValueError('Name cannot be empty or only spaces')
+        if len(name) < min_length:
+            raise ValueError('Name cannot be less than {} '.format(min_length))
+        if not isinstance(name, str):
+            raise TypeError('Name must be as string')
+        return name
+
+    @staticmethod
+    def verify_description(description):
+        description = description.strip()
+        if description is None:
+            raise ValueError('Description cannot be empty or only spaces')
+        if not isinstance(description, str):
+            raise TypeError('Description must be as string')
+        return description
 
 
 class ShoppingListItem(db.Model):
@@ -161,14 +222,48 @@ class ShoppingListItem(db.Model):
         db.session.commit()
 
     @staticmethod
-    def get_all(shoppinglist_id):
-        """Returns all items in the shopping list specified"""
-        return ShoppingList.query.filter_by(shoppinglist_id=shoppinglist_id)
+    def get_all(shoppinglist_id, page=None, per_page=None):
+        """Get all lists belonging to user_id"""
+        return ShoppingListItem.query.filter_by(
+            shoppinglist_id=shoppinglist_id).paginate(page, per_page).items
+
+    @staticmethod
+    def get_shopping_list_item(id):
+        shoppinglist_item = ShoppingListItem.query.filter_by(id=id).first()
+
+        if not shoppinglist_item:
+            # When no shopping list item is found, we throw an error
+            raise ValueNotFoundError(
+                'A shopping list Item with given ID was not found for this \
+                user'
+            )
+        return shoppinglist_item
 
     def delete(self):
         """Deletes shopping list item from the database"""
         db.session.delete(self)
         db.session.commit()
+
+    @staticmethod
+    def verify_name(name):
+        name = name.strip()
+        min_length = 5
+        if name is None:
+            raise ValueError('name cannot be empty or only spaces')
+        if len(name) < min_length:
+            raise ValueError('name cannot be less than {} '.format(min_length))
+        if not isinstance(name, str):
+            raise TypeError('name must be as string')
+        return name
+
+    @staticmethod
+    def verify_description(description):
+        description = description.strip()
+        if description is None:
+            raise ValueError('Description cannot be empty or only spaces')
+        if not isinstance(description, str):
+            raise TypeError('Description must be as string')
+        return description
 
     def __repr__(self):
         """ Prints out a representation of the item object"""

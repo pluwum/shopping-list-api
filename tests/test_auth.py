@@ -55,7 +55,7 @@ class AuthTestCase(TestCase):
         # Lets try creating the user a second time
         register_secondtime_user_response = self.client().post(
             '/v1/auth/register', data=self.user_data)
-        self.assertEqual(register_secondtime_user_response.status_code, 202)
+        self.assertEqual(register_secondtime_user_response.status_code, 409)
 
         # Get the results returned in JSON format
         result = json.loads(register_secondtime_user_response.data.decode())

@@ -3,7 +3,7 @@ from app.decorators import check_logged_in
 from app.models import ShoppingList, ShoppingListItem
 from flask import jsonify, make_response, request
 from flask.views import MethodView
-
+from werkzeug.exceptions import HTTPException, NotFound
 from . import search_blueprint
 
 
@@ -13,50 +13,42 @@ class SearchView(MethodView):
         """This section handles the search functionality of the API"""
         search_term = str(request.args.get('q', ''))
         limit = int(request.args.get('limit', 10))
-        # TODO: Check if authenticated before search
-        # Search for entry in shopping lists
-        shoppinglists = ShoppingList.query.filter(
-            ShoppingList.name.like("%" + search_term + "%")).limit(limit)
+        page = int(request.args.get('page', 1))
 
-        # Search for entry in shopping list items
-        shoppinglist_items = ShoppingListItem.query.filter(
-            ShoppingListItem.name.like("%" + search_term + "%")).limit(limit)
+        try:
+            # Search for entry in shopping lists
+            shoppinglists = ShoppingList.query.filter(
+                ShoppingList.name.like("%" + search_term + "%")).filter_by(
+                    user_id=user_id).paginate(page, limit).items
 
-        results = []
+            results = []
 
-        # Prepare shopping list query results for returning to requestor
-        for shoppinglist in shoppinglists:
-            obj = {
-                'id': shoppinglist.id,
-                'name': shoppinglist.name,
-                'description': shoppinglist.description,
-                'date_created': shoppinglist.date_created,
-                'date_modified': shoppinglist.date_modified,
-                'user_id': shoppinglist.user_id,
-                'type': 'list'
-            }
-            results.append(obj)
+            # Prepare shopping list query results for returning to requestor
+            for shoppinglist in shoppinglists:
+                obj = {
+                    'id': shoppinglist.id,
+                    'name': shoppinglist.name,
+                    'description': shoppinglist.description,
+                    'date_created': shoppinglist.date_created,
+                    'date_modified': shoppinglist.date_modified,
+                    'user_id': shoppinglist.user_id,
+                    'type': 'list'
+                }
+                results.append(obj)
 
-        # Prepare shopping list item query results for returning to requestor
-        for item in shoppinglist_items:
-            obj = {
-                'id': item.id,
-                'name': item.name,
-                'description': item.description,
-                'date_created': item.date_created,
-                'date_modified': item.date_modified,
-                'shopping_list_id': item.shoppinglist_id,
-                'type': 'item'
-            }
-            results.append(obj)
+            if len(results) == 0:
+                # Return a message if search didnot yield any results
+                return {
+                    "message": "Sorry, your search did not yield any results"
+                }, 200
 
-        if len(results) == 0:
-            # Return a message if search didnot yield any results
+            return make_response(jsonify(results)), 200
+        except NotFound as e:
             return {
-                "message": "Sorry, your search did not yield any results"
-            }, 200
-
-        return make_response(jsonify(results)), 200
+                "message": "The page you are looking for does not exist"
+            }, 404
+        except Exception as e:
+            return {"message": str(e)}, 500
 
 
 search_view = SearchView.as_view('search_view')

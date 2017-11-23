@@ -5,7 +5,7 @@ import uuid
 
 from app import mail
 from app.models import BlacklistToken, User
-from flask import Blueprint, jsonify, make_response, request
+from flask import jsonify, make_response, request
 from flask.views import MethodView
 from flask_mail import Message
 
@@ -17,27 +17,20 @@ class RegistrationView(MethodView):
 
     def post(self):
         """Handle POST requests for the registration endpoint"""
-        # check for email
-        if ('email' in request.data and request.data['email'] is not ''):
-            email = request.data['email']
-        else:
-            return {"message": "Sorry, please supply an email"}, 400
-        # check for password
-        if ('password' in request.data and request.data['password'] is not ''):
-            password = request.data['password']
-        else:
-            return {"message": "Sorry, please supply a password"}, 400
-
         # lets check if the user already exists
         try:
-            user = User.query.filter_by(email=email).first()
+            email = User.verify_username(request.data['email'])
+            password = User.verify_password(request.data['password'])
+        except ValueError as e:
+            return {"message": str(e)}, 400
+        except TypeError as e:
+            return {"message": str(e)}, 400
         except Exception as e:
-            response = {'message': str(e)}
-            return make_response(jsonify(response)), 400
-
-        if not user:
-            # This user doesn't exist, so lets create them
-            try:
+            return {"message": str(e)}, 500
+        
+        try:
+            user = User.query.filter_by(email=email).first()
+            if not user:
                 # Grab email and password and save them to the database
                 user = User(email=email, password=password)
                 user.save()
@@ -47,16 +40,16 @@ class RegistrationView(MethodView):
                     'message': 'You registered successfully. Please log in.'
                 }
                 return make_response(jsonify(response)), 201
-            except Exception as e:
-                # Return to requestor a message with the error that occured
-                response = {'message': str(e)}
-                return make_response(jsonify(response)), 400
-        else:
-            # This handles a case where user already exists
-            # Return am message telling them it already exist
-            response = {'message': 'User already exists. Please login.'}
-
-            return make_response(jsonify(response)), 202
+                
+            else:
+                # This handles a case where user already exists
+                # Return am message telling them it already exist
+                response = {'message': 'User already exists. Please login.'}
+                return {"message": 'User already exists. Please login.'}, 409
+            
+        except Exception as e:
+            # Return to requestor a message with the error that occured
+            return {"message": str(e)}, 500
 
 
 class PasswordResetView(MethodView):
@@ -64,16 +57,21 @@ class PasswordResetView(MethodView):
 
     def post(self):
         """This handles POST requests for password reset"""
+
         # lets check if the user exists
         try:
-            user = User.query.filter_by(email=request.data['email']).first()
+            email = User.verify_username(request.data['email'])
+            user = User.query.filter_by(email=email).first()
             access_token = user.generate_token(user.id)
+        except ValueError as e:
+            return {"message": str(e)}, 400
+        except TypeError as e:
+            return {"message": str(e)}, 400
         except Exception as e:
-            response = {'message': str(e)}
-            return make_response(jsonify(response)), 400
+            return {"message": str(e)}, 500
 
         if user and access_token:
-            # TODO: implement this
+            # Prepare email to send to the user
             msg = Message(
                 "Shopping list API Password Reset",
                 sender="Shopping List API<test.mail.ug@gmail.com",
@@ -89,12 +87,13 @@ class PasswordResetView(MethodView):
                     'You request for password reset has been received. Check your email \
                     for a reset link'
                 }
+                return make_response(jsonify(response)), 200
             except Exception as e:
                 response = {'message': str(e)}
+                return make_response(jsonify(response)), 500
         else:
             response = {'message': 'User doesnt exist in the system.'}
-
-        return make_response(jsonify(response)), 200
+            return make_response(jsonify(response)), 404
 
     def get(self):
 
@@ -136,14 +135,13 @@ class PasswordResetView(MethodView):
                     'You reset password for {} successfully.'.format(
                         user.email)
                 }
-
+                return make_response(jsonify(response)), 200
             except Exception as e:
                 response = {
                     'message':
                     'Sorry, we failed to send your password reset email.'
                 }
-
-            return make_response(jsonify(response)), 200
+                return make_response(jsonify(response)), 500
 
 
 class LogoutView(MethodView):
@@ -168,13 +166,13 @@ class LogoutView(MethodView):
                     return make_response(jsonify(response)), 200
                 except Exception as e:
                     response = {"message": str(e)}
-                    return make_response(jsonify(response)), 200
+                    return make_response(jsonify(response)), 500
             else:
                 response = {"message": resp}
                 return make_response(jsonify(response)), 401
         else:
             response = {"message": 'Provide a valid auth token.'}
-            return make_response(jsonify(response)), 403
+            return make_response(jsonify(response)), 401
 
 
 class LoginView(MethodView):
@@ -182,12 +180,15 @@ class LoginView(MethodView):
 
     def post(self):
         """Handle POST request for this view. Url ---> /auth/login"""
+
         try:
+            email = User.verify_username(request.data['email'])
+            password = User.verify_password(request.data['password'])
             # Get the user model from DB by email
-            user = User.query.filter_by(email=request.data['email']).first()
+            user = User.query.filter_by(email=email).first()
 
             # Try to authenticate the found user using their password
-            if user and user.password_is_valid(request.data['password']):
+            if user and user.password_is_valid(password):
 
                 # Generate the access token for authentication
                 access_token = user.generate_token(user.id)
