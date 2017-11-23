@@ -16,14 +16,16 @@ POST /auth/register|email, password | JSON
 POST /auth/login  | email, password | JSON
 POST /auth/logout | | JSON
 POST /auth/reset-password  | email | JSON
-POST /shoppinglists/  | name | JSON
+POST /shoppinglists/  | name, description | JSON
 GET /shoppinglists/  | | JSON
 GET /shoppinglists/<id>  | | JSON
-PUT /shoppinglists/<id>  | name | JSON
+PUT /shoppinglists/<id>  | name, description | JSON
 DELETE /shoppinglists/<id>  | | JSON
-POST /shoppinglists/<id>/items/  | name | JSON
-PUT /shoppinglists/<id>/items/<item_id>  | name |JSON
+GET/shoppinglists/<id>/items/  | | JSON
+POST /shoppinglists/<id>/items/  | name, description | JSON
+PUT /shoppinglists/<id>/items/<item_id>  | name, description |JSON
 DELETE /shoppinglists/<id>/items/<item_id> | | JSON
+GET /shoppinglists/search/q=<term>| | JSON
 
 # Motivation
 
