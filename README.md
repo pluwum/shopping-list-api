@@ -27,6 +27,7 @@ PUT /shoppinglists/<:id>/items/<:item_id>  | name, description |JSON
 DELETE /shoppinglists/<:id>/items/<:item_id> | | JSON
 GET /shoppinglists/search/q=<:term> | | JSON
 
+For more indepth description of the endpoints and usage please visit /apidocs on your working application using your browser
 # Motivation
 
 This project is part of a submission for week two of Andela BootCamp UG CH3 2017. All the features available are developed as specified by the assignment

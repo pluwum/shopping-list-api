@@ -13,10 +13,37 @@ from . import auth_blueprint
 
 
 class RegistrationView(MethodView):
-    """This class registers a new user."""
 
     def post(self):
-        """Handle POST requests for the registration endpoint"""
+        """Registration of a new user
+        ---
+        tags:
+            - "auth"
+        parameters:
+          - in: "body"
+            name: "body"
+            description: "password, email"
+            required: true
+            schema:
+             type: "object"
+             required:
+             - "password"
+             - "email"
+             properties:
+              password:
+               type: "string"
+              email:
+               type: "string"
+        responses:
+            201:
+                description: "Successfully Registerd"
+            409:
+                description: "Failed to register, duplicate user"
+            400:
+                description: "Failed to register, Invalid data supplied"
+            500:
+                description: "Failed to register, Something went wrong"
+            """
         # lets check if the user already exists
         try:
             email = User.verify_username(request.data['email'])

@@ -4,12 +4,13 @@ from flask_sqlalchemy import SQLAlchemy
 from flask_bcrypt import Bcrypt
 from flask_mail import Mail
 from instance.config import app_config
+from flasgger import Swagger
 # Lets initialise our db
 db = SQLAlchemy()
 
 # Lets create an instance of the mail App
 mail = Mail()
-
+swagger = Swagger()
 
 def create_app(config_name):
     """This wraps our flask app into one function for easy creation of the app
@@ -23,6 +24,7 @@ def create_app(config_name):
     # Lets create an instance of our Bcrytpt extension to overide the default
     bcrypt = Bcrypt(app)
 
+   
     # Load our flask instance with config from config file
     app.config.from_object(app_config[config_name])
 
@@ -31,7 +33,8 @@ def create_app(config_name):
 
     db.init_app(app)
     mail.init_app(app)
-
+    swagger.init_app(app)
+    
     # decorator used to allow cross origin requests
     @app.after_request
     def apply_cross_origin_header(response):
