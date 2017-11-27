@@ -54,7 +54,7 @@ class RegistrationView(MethodView):
             return {"message": str(e)}, 400
         except Exception as e:
             return {"message": str(e)}, 500
-        
+
         try:
             user = User.query.filter_by(email=email).first()
             if not user:
@@ -67,13 +67,13 @@ class RegistrationView(MethodView):
                     'message': 'You registered successfully. Please log in.'
                 }
                 return make_response(jsonify(response)), 201
-                
+
             else:
                 # This handles a case where user already exists
                 # Return am message telling them it already exist
                 response = {'message': 'User already exists. Please login.'}
                 return {"message": 'User already exists. Please login.'}, 409
-            
+
         except Exception as e:
             # Return to requestor a message with the error that occured
             return {"message": str(e)}, 500

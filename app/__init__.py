@@ -12,6 +12,7 @@ db = SQLAlchemy()
 mail = Mail()
 swagger = Swagger()
 
+
 def create_app(config_name):
     """This wraps our flask app into one function for easy creation of the app
      using our environment config and varying contexts
@@ -24,7 +25,6 @@ def create_app(config_name):
     # Lets create an instance of our Bcrytpt extension to overide the default
     bcrypt = Bcrypt(app)
 
-   
     # Load our flask instance with config from config file
     app.config.from_object(app_config[config_name])
 
@@ -34,7 +34,7 @@ def create_app(config_name):
     db.init_app(app)
     mail.init_app(app)
     swagger.init_app(app)
-    
+
     # decorator used to allow cross origin requests
     @app.after_request
     def apply_cross_origin_header(response):
@@ -42,7 +42,7 @@ def create_app(config_name):
 
         response.headers["Access-Control-Allow-Credentials"] = "true"
         response.headers["Access-Control-Allow-Methods"] = "GET,HEAD,OPTIONS," \
-                                                        "POST,PUT,DELETE"
+            "POST,PUT,DELETE"
         response.headers["Access-Control-Allow-Headers"] = "Access-Control-Allow-" \
             "Headers, Origin,Accept, X-Requested-With, Content-Type, " \
             "Access-Control-Request-Method, Access-Control-Request-Headers," \

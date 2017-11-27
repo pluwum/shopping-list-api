@@ -54,7 +54,7 @@ class ShoppinglistsView(MethodView):
             })
 
             return make_response(response), 201
-            
+
         except ValueError as e:
             return {"message": str(e)}, 400
         except TypeError as e:
@@ -75,7 +75,7 @@ class ShoppinglistManipulationView(MethodView):
             return {
                 "message": "shoppinglist {} deleted".format(shoppinglist.id)
             }, 200
-            
+
         except ValueNotFoundError as e:
             return {"message": str(e)}, 404
         except Exception as e:
@@ -141,6 +141,7 @@ class ShoppinglistManipulationView(MethodView):
             return {"message": str(e)}, 400
         except Exception as e:
             return {"message": str(e)}, 500
+
 
 # Lets make our views callable
 shoppinglists_view = ShoppinglistsView.as_view('shoppinglists_view')
