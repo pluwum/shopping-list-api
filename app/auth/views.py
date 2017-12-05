@@ -13,7 +13,6 @@ from . import auth_blueprint
 
 
 class RegistrationView(MethodView):
-
     def post(self):
         """Registration of a new user
         ---
@@ -80,10 +79,35 @@ class RegistrationView(MethodView):
 
 
 class PasswordResetView(MethodView):
-    """This handles password reset action"""
+    """This handles password reset request action"""
 
     def post(self):
-        """This handles POST requests for password reset"""
+        """Request for a user's password reset
+        ---
+        tags:
+            - "auth"
+        parameters:
+          - in: "body"
+            name: "email"
+            description: "user's email address"
+            required: true
+            schema:
+             type: "object"
+             required:
+             - "email"
+             properties:
+              email:
+               type: "string"
+        responses:
+            200:
+                description: "Reset email was Successfully sent"
+            404:
+                description: "User doesnt exist in the system."
+            400:
+                description: "Failed to register, Invalid data supplied"
+            500:
+                description: "Failed to reset because something went wrong"
+            """
 
         # lets check if the user exists
         try:
@@ -123,7 +147,18 @@ class PasswordResetView(MethodView):
             return make_response(jsonify(response)), 404
 
     def get(self):
-
+        """Reset a user's password
+        ---
+        tags:
+            - "auth"
+        responses:
+            200:
+                description: "User password was successfully reset"
+            401:
+                description: "Sorry, temporary access token not found"
+            500:
+                description: "Failed to reset because something went wrong"
+            """
         # Split Bearer and token then grab the token
         access_token = str(request.args.get('auth_token', ''))
 
@@ -175,6 +210,18 @@ class LogoutView(MethodView):
     """This handles logout action"""
 
     def post(self):
+        """Logout a logged in user
+        ---
+        tags:
+            - "auth"
+        responses:
+            200:
+                description: "User uccessfully logged out."
+            401:
+                description: "Invalid Auth token Provided."
+            500:
+                description: "Failed to logout because something went wrong"
+            """
         # get access token
         auth_header = request.headers.get('Authorization')
         if auth_header:
@@ -206,7 +253,33 @@ class LoginView(MethodView):
     """This view handles user login action."""
 
     def post(self):
-        """Handle POST request for this view. Url ---> /auth/login"""
+        """Login a user
+        ---
+        tags:
+            - "auth"
+        parameters:
+          - in: "body"
+            name: "body"
+            description: "password, email"
+            required: true
+            schema:
+             type: "object"
+             required:
+             - "password"
+             - "email"
+             properties:
+              password:
+               type: "string"
+              email:
+               type: "string"
+        responses:
+            200:
+                description: "Successfully logged in"
+            401:
+                description: "Invalid email or password, Please try again"
+            500:
+                description: "Failed to log in, Something went wrong"
+            """
 
         try:
             email = User.verify_username(request.data['email'])

@@ -13,7 +13,14 @@ class ShoppinglistsView(MethodView):
 
     @check_logged_in
     def get(self, user_id):
-        # Executes if request is GET
+        """Return all shopping lists for a user
+        ---
+        tags:
+            - "shoppinglists"
+        responses:
+            200:
+                description: " Shopping lists returned successfully"
+            """
         # Return all shopping list for authed User
         limit = int(request.args.get('limit', 10))
         page = int(request.args.get('page', 1))
@@ -36,6 +43,32 @@ class ShoppinglistsView(MethodView):
 
     @check_logged_in
     def post(self, user_id):
+        """Addition of a new shoppinglist
+        ---
+        tags:
+            - "shoppinglists"
+        parameters:
+          - in: "body"
+            name: "body"
+            description: "name, description"
+            required: true
+            schema:
+             type: "object"
+             required:
+             - "name"
+             properties:
+              name:
+               type: "string"
+              description:
+               type: "string"
+        responses:
+            201:
+                description: "Shopping list Successfully added"
+            400:
+                description: "Invalid data supplied"
+            500:
+                description: "Something went wrong"
+            """
         try:
             name = ShoppingList.verify_name(str(request.data.get('name', '')))
             description = ShoppingList.verify_description(
@@ -68,6 +101,24 @@ class ShoppinglistManipulationView(MethodView):
 
     @check_logged_in
     def delete(self, user_id, id):
+        """Delete shoppinglist
+        ---
+        tags:
+            - "shoppinglists"
+        parameters:
+          - name: id
+            in: path
+            type: integer
+            required: true
+            description: "Shopping list id"
+        responses:
+            200:
+                description: "Shopping list Successfully added"
+            404:
+                description: "Shopping list not found"
+            500:
+                description: "Something went wrong"
+            """
         try:
             shoppinglist = ShoppingList.get_shopping_list(user_id, id)
             # We handle DELETE the Delete request here
@@ -83,6 +134,25 @@ class ShoppinglistManipulationView(MethodView):
 
     @check_logged_in
     def get(self, user_id, id):
+        """Show a shoppinglist
+        ---
+        tags:
+            - "shoppinglists"
+        parameters:
+          - name: id
+            in: path
+            type: integer
+            required: true
+            description: "Shopping list id"
+
+        responses:
+            200:
+                description: "Shopping list Successfully added"
+            404:
+                description: "Shopping list not found"
+            500:
+                description: "Something went wrong"
+            """
         try:
             shoppinglist = ShoppingList.get_shopping_list(user_id, id)
             results = []
@@ -108,6 +178,39 @@ class ShoppinglistManipulationView(MethodView):
 
     @check_logged_in
     def put(self, user_id, id):
+        """Update a shopping list
+        ---
+        tags:
+            - "shoppinglists"
+        parameters:
+          - name: id
+            in: path
+            type: integer
+            required: true
+            description: "Shopping list id"
+          - in: "body"
+            name: "body"
+            description: "name, description"
+            required: true
+            schema:
+             type: "object"
+             required:
+             - "name"
+             properties:
+              name:
+               type: "string"
+              description:
+               type: "string"
+        responses:
+            200:
+                description: "Shopping list Successfully edited"
+            400:
+                description: "Invalid data"
+            404:
+                description: "Shopping list not found"
+            500:
+                description: "Something went wrong"
+            """
         # We handle PUT request to edit list here
         # Grab the name form parameter and save it to the database
         try:
