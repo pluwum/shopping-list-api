@@ -10,7 +10,28 @@ from . import search_blueprint
 class SearchView(MethodView):
     @check_logged_in
     def get(self, user_id):
-        """This section handles the search functionality of the API"""
+        """Add an item to a shopping list
+        ---
+        tags:
+            - "search"
+        parameters:
+          - name: term
+            in: query
+            type: string
+            required: true
+            description: "Search term"
+          - name: limit
+            in: query
+            type: integer
+            description: "number of results to display"            
+        responses:
+            200:
+                description: "Search was successful"
+            404:
+                description: "The page you are looking for does not exist"
+            500:
+                description: "Something went wrong"
+            """
         search_term = str(request.args.get('q', ''))
         limit = int(request.args.get('limit', 10))
         page = int(request.args.get('page', 1))

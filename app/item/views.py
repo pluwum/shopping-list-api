@@ -10,6 +10,24 @@ from . import item_blueprint
 class ItemView(MethodView):
     @check_logged_in
     def get(self, user_id, id):
+        """Show all items of a shoppinglist
+        ---
+        tags:
+            - "items"
+        parameters:
+          - name: id
+            in: path
+            type: integer
+            required: true
+            description: "Shopping list id"
+        responses:
+            200:
+                description: "Shopping list item Successfully removed"
+            404:
+                description: "Shopping list not found"
+            500:
+                description: "Something went wrong"
+            """
         try:
             shoppinglist = ShoppingList.get_shopping_list(user_id, id)
 
@@ -44,6 +62,39 @@ class ItemView(MethodView):
 
     @check_logged_in
     def post(self, user_id, id):
+        """Add an item to a shopping list
+        ---
+        tags:
+            - "items"
+        parameters:
+          - name: id
+            in: path
+            type: integer
+            required: true
+            description: "Shopping list id"
+          - in: "body"
+            name: "body"
+            description: "name, description"
+            required: true
+            schema:
+             type: "object"
+             required:
+             - "name"
+             properties:
+              name:
+               type: "string"
+              description:
+               type: "string"
+        responses:
+            201:
+                description: "Shopping list item Successfully added"
+            400:
+                description: "Invalid data"
+            404:
+                description: "Shopping list not found"
+            500:
+                description: "Something went wrong"
+            """
         try:
             shoppinglist = ShoppingList.get_shopping_list(user_id, id)
 
@@ -89,6 +140,29 @@ class ItemView(MethodView):
 class ItemManipulationView(MethodView):
     @check_logged_in
     def delete(self, user_id, id, item_id):
+        """Delete shoppinglist item
+        ---
+        tags:
+            - "items"
+        parameters:
+          - name: id
+            in: path
+            type: integer
+            required: true
+            description: "Shopping list id"
+          - name: item_id
+            in: path
+            type: integer
+            required: true
+            description: "Shopping list item id"
+        responses:
+            200:
+                description: "Shopping list item Successfully removed"
+            404:
+                description: "Shopping list not found"
+            500:
+                description: "Something went wrong"
+            """
         try:
             shoppinglist = ShoppingList.get_shopping_list(user_id, id)
 
@@ -111,6 +185,44 @@ class ItemManipulationView(MethodView):
 
     @check_logged_in
     def put(self, user_id, id, item_id):
+        """Update a shopping list
+        ---
+        tags:
+            - "items"
+        parameters:
+          - name: id
+            in: path
+            type: integer
+            required: true
+            description: "Shopping list id"
+          - name: item_id
+            in: path
+            type: integer
+            required: true
+            description: "Shopping list item id"
+          - in: "body"
+            name: "body"
+            description: "name, description"
+            required: true
+            schema:
+             type: "object"
+             required:
+             - "name"
+             properties:
+              name:
+               type: "string"
+              description:
+               type: "string"
+        responses:
+            200:
+                description: "Shopping list item Successfully edited"
+            400:
+                description: "Invalid data"
+            404:
+                description: "Shopping list not found"
+            500:
+                description: "Something went wrong"
+            """
         try:
             # Handle Editing of item here
             shoppinglist = ShoppingList.get_shopping_list(user_id, id)
