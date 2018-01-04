@@ -7,6 +7,8 @@ This project is a RESTful API using Flask with Endpoints that:
 - b. Enable users to create, update, view and delete a shopping list
 - c. Add, update, view or delete items in a shopping list
 
+You can try out the application hosted on heroku [here](https://python-shoppinglist-api.herokuapp.com/)
+
 # Usage
 The API can be accessed using the following end points
 
