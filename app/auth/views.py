@@ -317,11 +317,91 @@ class LoginView(MethodView):
             return make_response(jsonify(response)), 500
 
 
+class PasswordChangeView(MethodView):
+    def post(self):
+        """Change password of an existing user
+        ---
+        tags:
+            - "auth"
+        parameters:
+          - in: "body"
+            name: "body"
+            description: "password, re-password"
+            required: true
+            schema:
+             type: "object"
+             required:
+             - "password"
+             - "repassword"
+             properties:
+              password:
+               type: "string"
+              repassword:
+               type: "string"
+        responses:
+            200:
+                description: "Successfully changed password"
+            400:
+                description: "Failed to change password, Invalid data supplied"
+            404:
+                description: "User doesn't exist"
+            500:
+                description: "Failed to change password, Something went wrong"
+            """
+        # get access token
+        auth_header = request.headers.get('Authorization')
+        if auth_header:
+            access_token = auth_header.split(" ")[1]
+        else:
+            access_token = ''
+        if access_token:        
+           
+            try:
+                repassword = User.verify_password(request.data['repassword'])
+                password = User.verify_password(request.data['password'])
+                if not repassword == password:
+                    return {"message": 'Passwords did not match'}, 400
+
+            except ValueError as e:
+                return {"message": str(e)}, 400
+            except TypeError as e:
+                return {"message": str(e)}, 400
+            except Exception as e:
+                return {"message": str(e)}, 500
+            
+            user_id = User.decode_token(access_token)
+            if not isinstance(user_id, str):
+                try:
+                    # lets check if the user exists
+                    user = User.query.filter_by(id=user_id).first()
+                    if user:
+                        # Grab password and save it to the database
+                        user.password = user.hash_password(password)
+                        user.save()
+
+                        # Return success response to the requestor
+                        response = {
+                            'message': 'Successfully changed password'
+                        }
+                        return make_response(jsonify(response)), 200
+
+                    else:
+                        # This handles a case where user doesnt exists
+                        # Return am message telling them it doesnt exist
+                        return {"message": 'User does not exist. Please register'}, 404
+
+                except Exception as e:
+                    # Return to requestor a message with the error that occured
+                    return {"message": str(e)}, 500
+
+        return {"message": 'Authorization is required to access this resource'}, 401
+
 # Lets make our rauth views callable
 registration_view = RegistrationView.as_view('registration_view')
 login_view = LoginView.as_view('login_view')
 logout_view = LogoutView.as_view('logout_view')
 password_reset_view = PasswordResetView.as_view('password_reset_view')
+password_change_view = PasswordChangeView.as_view('password_change_view')
 
 # Add the rule for the registration end point  /auth/register
 # Then we can add the rule to the blueprint
@@ -338,9 +418,16 @@ auth_blueprint.add_url_rule(
 auth_blueprint.add_url_rule(
     '/v1/auth/logout', view_func=logout_view, methods=['POST'])
 
-# Define the rule for the logout endpoint  /auth/reset-password
+# Define the rule for the password reset endpoint  /auth/reset-password
 # And then we add the rule to the blueprint
 auth_blueprint.add_url_rule(
     '/v1/auth/reset-password',
     view_func=password_reset_view,
     methods=['POST', 'GET'])
+
+# Define the rule for the password change  /auth/change-password
+# And then we add the rule to the blueprint
+auth_blueprint.add_url_rule(
+    '/v1/auth/change-password',
+    view_func=password_change_view,
+    methods=['POST'])
