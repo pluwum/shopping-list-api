@@ -149,7 +149,7 @@ class ShoppingList(db.Model):
     def get_all(user_id, page=None, per_page=None):
         """Get all lists belonging to user_id"""
         return ShoppingList.query.filter_by(user_id=user_id).paginate(
-            page, per_page).items
+            page, per_page)
 
     def delete(self):
         """Delete User model from the database"""
@@ -175,7 +175,7 @@ class ShoppingList(db.Model):
     @staticmethod
     def verify_name(name):
         name = name.strip()
-        min_length = 2
+        min_length = 8
         if name is None:
             raise ValueError('Name cannot be empty or only spaces')
         if len(name) < min_length:
@@ -226,7 +226,7 @@ class ShoppingListItem(db.Model):
     def get_all(shoppinglist_id, page=None, per_page=None):
         """Get all lists belonging to user_id"""
         return ShoppingListItem.query.filter_by(
-            shoppinglist_id=shoppinglist_id).paginate(page, per_page).items
+            shoppinglist_id=shoppinglist_id).paginate(page, per_page)
 
     @staticmethod
     def get_shopping_list_item(id):

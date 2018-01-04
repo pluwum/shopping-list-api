@@ -39,13 +39,14 @@ class SearchView(MethodView):
         try:
             # Search for entry in shopping lists
             shoppinglists = ShoppingList.query.filter(
-                ShoppingList.name.like("%" + search_term + "%")).filter_by(
-                    user_id=user_id).paginate(page, limit).items
+                ShoppingList.name.ilike("%" + search_term + "%")).filter_by(
+                    user_id=user_id).paginate(page, limit)
 
             results = []
+            data = {}
 
             # Prepare shopping list query results for returning to requestor
-            for shoppinglist in shoppinglists:
+            for shoppinglist in shoppinglists.items:
                 obj = {
                     'id': shoppinglist.id,
                     'name': shoppinglist.name,
@@ -57,13 +58,26 @@ class SearchView(MethodView):
                 }
                 results.append(obj)
 
+            data['meta'] = {
+                'has_next': shoppinglists.has_next,
+                'has_prev': shoppinglists.has_prev,
+                'next_num': shoppinglists.next_num,
+                'prev_num': shoppinglists.prev_num,
+                'total': shoppinglists.total,
+                'page': shoppinglists.page,
+                'pages': shoppinglists.pages,
+                'per_page': shoppinglists.per_page
+            }
+            data['data'] = results
+
             if len(results) == 0:
                 # Return a message if search didnot yield any results
                 return {
                     "message": "Sorry, your search did not yield any results"
                 }, 200
 
-            return make_response(jsonify(results)), 200
+            return make_response(jsonify(data)), 200
+        
         except NotFound as e:
             return {
                 "message": "The page you are looking for does not exist"

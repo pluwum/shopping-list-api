@@ -26,8 +26,8 @@ class ShoppinglistsView(MethodView):
         page = int(request.args.get('page', 1))
         shoppinglists = ShoppingList.get_all(user_id, page, limit)
         results = []
-
-        for shoppinglist in shoppinglists:
+        data = {}
+        for shoppinglist in shoppinglists.items:
             obj = {
                 'id': shoppinglist.id,
                 'name': shoppinglist.name,
@@ -37,9 +37,20 @@ class ShoppinglistsView(MethodView):
                 'user_id': shoppinglist.user_id
             }
             results.append(obj)
+        data['meta'] = {
+            'has_next': shoppinglists.has_next,
+            'has_prev': shoppinglists.has_prev,
+            'next_num': shoppinglists.next_num,
+            'prev_num': shoppinglists.prev_num,
+            'total': shoppinglists.total,
+            'page': shoppinglists.page,
+            'pages': shoppinglists.pages,
+            'per_page': shoppinglists.per_page
+        }
 
+        data['data'] = results
         # Return reponse with shopping lists and set server code
-        return make_response(jsonify(results)), 200
+        return make_response(jsonify(data)), 200
 
     @check_logged_in
     def post(self, user_id):
