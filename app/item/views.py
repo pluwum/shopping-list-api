@@ -38,10 +38,11 @@ class ItemView(MethodView):
             shoppinglist_items = ShoppingListItem.get_all(id, page, limit)
 
             results = []
+            data = {}
 
             # Prepare shopping list item query results for returning
             # to requestor
-            for item in shoppinglist_items:
+            for item in shoppinglist_items.items:
                 obj = {
                     'id': item.id,
                     'name': item.name,
@@ -53,7 +54,20 @@ class ItemView(MethodView):
                 }
                 results.append(obj)
 
-            return make_response(jsonify(results)), 200
+            data['meta'] = {
+                'has_next': shoppinglist_items.has_next,
+                'has_prev': shoppinglist_items.has_prev,
+                'next_num': shoppinglist_items.next_num,
+                'prev_num': shoppinglist_items.prev_num,
+                'total': shoppinglist_items.total,
+                'page': shoppinglist_items.page,
+                'pages': shoppinglist_items.pages,
+                'per_page': shoppinglist_items.per_page
+            }
+
+            data['data'] = results
+            # Return reponse with shopping lists items and set server code
+            return make_response(jsonify(data)), 200
 
         except ValueNotFoundError as e:
             return {"message": str(e)}, 404
