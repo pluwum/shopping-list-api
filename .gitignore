@@ -5,5 +5,4 @@ app/*.pyc
 test/__pycache__
 test/*.pyc
 .cache
-migrations
 .vscode
