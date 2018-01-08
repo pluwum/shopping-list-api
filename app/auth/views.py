@@ -44,6 +44,7 @@ class RegistrationView(MethodView):
                 description: "Failed to register, Something went wrong"
             """
         # lets check if the user already exists
+
         try:
             email = User.verify_username(request.data['email'])
             password = User.verify_password(request.data['password'])
@@ -275,12 +276,16 @@ class LoginView(MethodView):
         responses:
             200:
                 description: "Successfully logged in"
-            401:
+            400:
                 description: "Invalid email or password, Please try again"
             500:
                 description: "Failed to log in, Something went wrong"
             """
 
+        if 'email' not in request.data or 'password' not in request.data:
+            return {
+                "message": "Username or password parameter is missing"
+            }, 400
         try:
             email = User.verify_username(request.data['email'])
             password = User.verify_password(request.data['password'])

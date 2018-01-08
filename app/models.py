@@ -83,6 +83,7 @@ class User(db.Model):
     @staticmethod
     def verify_username(username):
         username = username.strip()
+        
         min_length = 5
         if username is None:
             raise ValueError('Email cannot be empty or only spaces')
