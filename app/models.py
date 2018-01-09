@@ -83,7 +83,7 @@ class User(db.Model):
     @staticmethod
     def verify_username(username):
         username = username.strip()
-        
+
         min_length = 5
         if username is None:
             raise ValueError('Email cannot be empty or only spaces')
@@ -236,8 +236,7 @@ class ShoppingListItem(db.Model):
             # When no shopping list item is found, we throw an error
             raise ValueNotFoundError(
                 'A shopping list Item with given ID was not found for this \
-                user'
-            )
+                user')
         return shoppinglist_item
 
     def delete(self):

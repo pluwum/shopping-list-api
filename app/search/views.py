@@ -7,10 +7,10 @@ from werkzeug.exceptions import HTTPException, NotFound
 from . import search_blueprint
 
 
-class SearchView(MethodView):
+class SearchListView(MethodView):
     @check_logged_in
     def get(self, user_id):
-        """Add an item to a shopping list
+        """Search shopping lists
         ---
         tags:
             - "search"
@@ -77,7 +77,7 @@ class SearchView(MethodView):
                 }, 200
 
             return make_response(jsonify(data)), 200
-        
+
         except NotFound as e:
             return {
                 "message": "The page you are looking for does not exist"
@@ -86,7 +86,92 @@ class SearchView(MethodView):
             return {"message": str(e)}, 500
 
 
-search_view = SearchView.as_view('search_view')
+class SearchItemView(MethodView):
+    @check_logged_in
+    def get(self, user_id, shoppinglist_id):
+        """Search items
+        ---
+        tags:
+            - "search"
+        parameters:
+          - name: term
+            in: query
+            type: string
+            required: true
+            description: "Search term"
+          - name: limit
+            in: query
+            type: integer
+            description: "number of results to display"            
+        responses:
+            200:
+                description: "Search was successful"
+            404:
+                description: "The page you are looking for does not exist"
+            500:
+                description: "Something went wrong"
+            """
+        search_term = str(request.args.get('q', ''))
+        limit = int(request.args.get('limit', 10))
+        page = int(request.args.get('page', 1))
+
+        try:
+            # Search for entry in shopping lists
+            shoppinglist_items = ShoppingListItem.query.filter(
+                ShoppingListItem.name.ilike("%" + search_term + "%")
+            ).filter_by(shoppinglist_id=shoppinglist_id).paginate(page, limit)
+
+            results = []
+            data = {}
+
+            # Prepare shopping list query results for returning to requestor
+            for shoppinglist_item in shoppinglist_items.items:
+                obj = {
+                    'id': shoppinglist_item.id,
+                    'name': shoppinglist_item.name,
+                    'description': shoppinglist_item.description,
+                    'date_created': shoppinglist_item.date_created,
+                    'date_modified': shoppinglist_item.date_modified,
+                    'shopping_list_id': shoppinglist_item.shoppinglist_id
+                }
+                results.append(obj)
+
+            data['meta'] = {
+                'has_next': shoppinglist_items.has_next,
+                'has_prev': shoppinglist_items.has_prev,
+                'next_num': shoppinglist_items.next_num,
+                'prev_num': shoppinglist_items.prev_num,
+                'total': shoppinglist_items.total,
+                'page': shoppinglist_items.page,
+                'pages': shoppinglist_items.pages,
+                'per_page': shoppinglist_items.per_page
+            }
+            data['data'] = results
+
+            if len(results) == 0:
+                # Return a message if search didnot yield any results
+                return {
+                    "message": "Sorry, your search did not yield any results"
+                }, 200
+
+            return make_response(jsonify(data)), 200
+
+        except NotFound as e:
+            return {
+                "message": "The page you are looking for does not exist"
+            }, 404
+        except Exception as e:
+            return {"message": str(e)}, 500
+
+
+search_list_view = SearchListView.as_view('search_list_view')
 
 search_blueprint.add_url_rule(
-    '/v1/shoppinglists/search/', view_func=search_view, methods=['GET'])
+    '/v1/shoppinglists/search/', view_func=search_list_view, methods=['GET'])
+
+search_item_view = SearchItemView.as_view('search_item_view')
+
+search_blueprint.add_url_rule(
+    '/v1/shoppinglists/search/<int:shoppinglist_id>/',
+    view_func=search_item_view,
+    methods=['GET'])
